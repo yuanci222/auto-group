@@ -60,58 +60,18 @@ opens tabs and asserts the grouping and ordering behaviour. It looks for Chrome 
 `.cache/browsers/...` (install with
 `npx @puppeteer/browsers install chrome@stable --path .cache/browsers`) and honours `CHROME_PATH`.
 
-## Rule model
-
-```ts
-interface Rule {
-  name: string;
-  enabled: boolean;
-  match: {
-    pattern: string;          // regex source, or glob / plain text depending on `mode`
-    patterns?: string[];      // additional alternatives (OR)
-    target: 'title' | 'url' | 'both';
-    mode: 'regex' | 'wildcard' | 'contains' | 'startsWith' | 'endsWith' | 'exact' | 'domain';
-    flags?: string;           // i m s u (g is added automatically)
-    capturePattern?: string;  // second regex used only for $1 templating
-    captureTarget?: 'title' | 'url';
-  };
-  group: {
-    mode: 'perMatch' | 'fixed' | 'template';
-    title?: string;           // for fixed groups
-    template?: string;        // $0, $1, ${name}
-    captureGroup?: number | string;
-    color?: GroupColor;
-  };
-  priority: number;
-}
-```
-
-`perMatch` is the mode that makes dynamic groups work. With `fixed`, every matching tab joins the
-one group named `title` (existing groups with the same title are reused). With `template`, one
-shared group gets a title interpolated from the match.
-
 ## Import / export compatibility
 
-Import auto-detects the format and **merges** into the current ruleset. Duplicates (same target,
-mode, pattern and group) are skipped rather than overwritten.
+Import auto-detects the file format and **merges** — existing rules are never overwritten and
+semantic duplicates are skipped. Export as native JSON, as a Tabee / Tab Modifier config, or as a
+Markdown table.
 
-| Source | Format | Imported as |
-| --- | --- | --- |
-| Auto Group | native `{version, rules, settings}` | lossless |
-| Tab Modifier / Tabee | 0.x `{settings, rules}`, 1.x `{rules, groups, settings}`, pre-0.10 flat map | `url_fragment` + `detection` → rules; `group_id` → group title/colour; `url_matcher` / `title_matcher` → capture patterns |
-| Simple Tab Groups | `{groups: [{catchTabRules, …}]}` | newline-separated regexes → one rule per group |
-| Tab Groups Extension (guokai.dev) | `{meta:{name:'tab-groups-rules'}, 'rule-*': {…}}` | `urlMatches` / `titleMatches` triples → rules |
-| Auto-Group Tabs (loilo) | `[{title, color, matchers, options}]` | match patterns and `/regex/flags` → rules |
-| Auto Tab Groups (nitzanpap) | `{version, exportDate, rules:{…}}` | `{capture}`, `*`, `**`, `title:` and `/regex/` DSL → rules (dynamic groups for captures) |
-| Auto Tab Groups (jackcellphonerepair) | `[{group: {NAME, URL[], COLOR}}]` | substring rules |
-| Auto Tab Grouper (diasDominik) | `{domainGroups: {…}}` | domain / regex rules |
-| Regex Tab Organizer | `{rules: [{regex, groupName, color}]}` | regex rules against title + URL |
-| Tabs Manager – Auto Group and Save | `{customRules: [{groups: [{match: {…}}]}]}` | per-condition rules (AND flattened to OR, with a warning) |
-| Session exports | Tab Manager Plus, Tab Session Manager, Session Buddy, Toby, Workona, Tablerone | named groups → disabled `domain` rules; flat lists → one disabled “group every site by domain” rule |
-| OneTab / bookmarks | plain text, HTML | disabled “group every site by domain” rule |
-
-Session formats carry no rules, so generated rules are **disabled** for you to review before they
-fire.
+Supported rule formats include Tab Modifier / Tabee, Simple Tab Groups, Tab Groups Extension,
+Auto-Group Tabs (loilo), Auto Tab Groups (nitzanpap), Auto Tab Grouper, Regex Tab Organizer and
+Tabs Manager. Session exports from Tab Manager Plus, Tab Session Manager, Session Buddy, Toby,
+Workona and Tablerone (plus OneTab text and bookmark HTML) are converted into **disabled** starter
+rules for you to review. Format details and field mappings are in
+[`docs/DESIGN.md`](docs/DESIGN.md).
 
 ## Trademarks & compatibility
 
