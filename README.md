@@ -16,6 +16,13 @@ GroupA | GroupB | GroupC | ticket-123 | ticket-456 | tabA | tabB
 
 Everything runs locally: no host permissions, no content scripts, no network requests.
 
+## Example
+
+Grouping by ticket id — a PRD on Notion, test cases on Google Sheets and a doc on Google Docs all
+land in the group for their ticket, and the ungrouped tabs sit below:
+
+![Grouped by ticket id](docs/screenshots/per-ticket-groups.png)
+
 ## Features
 
 | Requirement | How it works |
