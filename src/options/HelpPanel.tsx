@@ -21,10 +21,11 @@ export function HelpPanel() {
           </p>
           <ul>
             <li>
-              Pattern <code className={styles.inline}>ticket-\d+</code> on{' '}
-              <code className={styles.inline}>document.title</code> → a group for{' '}
+              Pattern <code className={styles.inline}>ticket-\d+</code> on the title → a group for{' '}
               <code className={styles.inline}>ticket-123</code>, one for{' '}
-              <code className={styles.inline}>ticket-456</code>, and so on.
+              <code className={styles.inline}>ticket-456</code>, and so on. A PRD doc, a Jira issue
+              and a Figma file that all mention <code className={styles.inline}>ticket-123</code>{' '}
+              land in the same group, no matter which site they are on.
             </li>
             <li>
               Template <code className={styles.inline}>T-$1</code> with capture group{' '}
@@ -59,9 +60,11 @@ export function HelpPanel() {
           <h3>Pattern types</h3>
           <ul>
             <li>
-              <strong>Regular expression</strong> — JavaScript syntax. Flags{' '}
-              <code className={styles.inline}>i m s u</code>; <code className={styles.inline}>g</code>{' '}
-              is added automatically.
+              <strong>Regular expression</strong> — JavaScript syntax. The <em>Ignore case</em>{' '}
+              checkbox controls the <code className={styles.inline}>i</code> flag; add{' '}
+              <code className={styles.inline}>m</code>/<code className={styles.inline}>s</code>/
+              <code className={styles.inline}>u</code> under Advanced.{' '}
+              <code className={styles.inline}>g</code> is added automatically.
             </li>
             <li>
               <strong>Wildcard</strong> — <code className={styles.inline}>*</code> and{' '}

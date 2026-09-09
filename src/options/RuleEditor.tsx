@@ -12,7 +12,7 @@ import { ColorDot, ColorPicker } from '../ui/components';
 import styles from './options.module.css';
 
 const TARGETS: Array<{ value: MatchTarget; label: string }> = [
-  { value: 'title', label: 'document.title' },
+  { value: 'title', label: 'Title' },
   { value: 'url', label: 'URL' },
   { value: 'both', label: 'Title or URL' },
 ];
@@ -49,6 +49,9 @@ export function RuleEditor({
 
   const isRegex = draft.match.mode === 'regex';
   const error = validateMatch(draft.match);
+  const ignoreCase = isRegex
+    ? (draft.match.flags ?? 'i').includes('i')
+    : !(draft.match.caseSensitive ?? false);
 
   const updateMatch = (patch: Partial<Rule['match']>) =>
     setDraft((current) => ({ ...current, match: { ...current.match, ...patch } }));
@@ -56,6 +59,15 @@ export function RuleEditor({
     setDraft((current) => ({ ...current, group: { ...current.group, ...patch } }));
   const updateOptions = (patch: Partial<NonNullable<Rule['options']>>) =>
     setDraft((current) => ({ ...current, options: { ...(current.options ?? {}), ...patch } }));
+
+  const setIgnoreCase = (value: boolean) => {
+    if (isRegex) {
+      const flags = (draft.match.flags ?? 'i').replace(/i/g, '');
+      updateMatch({ flags: value ? `${flags}i` : flags });
+    } else {
+      updateMatch({ caseSensitive: !value });
+    }
+  };
 
   const matches = useMemo(
     () =>
@@ -155,76 +167,14 @@ export function RuleEditor({
         {error ? <div className={styles.error}>{error}</div> : null}
       </div>
 
-      {isRegex ? (
-        <div className={styles.grid3}>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="rule-flags">
-              Flags
-            </label>
-            <input
-              id="rule-flags"
-              className={`${styles.input} ${styles.mono}`}
-              value={draft.match.flags ?? 'i'}
-              placeholder="i"
-              onChange={(event) => updateMatch({ flags: event.target.value.replace(/[^gimsuy]/g, '') })}
-            />
-            <span className={styles.hint}>i = ignore case, m, s, u. `g` is added automatically.</span>
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="rule-capture-pattern">
-              Capture pattern (optional)
-            </label>
-            <input
-              id="rule-capture-pattern"
-              className={`${styles.input} ${styles.mono}`}
-              value={draft.match.capturePattern ?? ''}
-              placeholder="e.g. /issues/(\\d+)"
-              onChange={(event) => updateMatch({ capturePattern: event.target.value || undefined })}
-            />
-            <span className={styles.hint}>Extra regex used only to extract $1, $2 …</span>
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="rule-capture-target">
-              Capture from
-            </label>
-            <select
-              id="rule-capture-target"
-              className={styles.select}
-              value={draft.match.captureTarget ?? draft.match.target}
-              onChange={(event) => updateMatch({ captureTarget: event.target.value as 'title' | 'url' })}
-            >
-              <option value="title">document.title</option>
-              <option value="url">URL</option>
-            </select>
-          </div>
-        </div>
-      ) : (
-        <div className={styles.checkboxRow}>
-          <input
-            id="rule-case"
-            type="checkbox"
-            checked={draft.match.caseSensitive ?? false}
-            onChange={(event) => updateMatch({ caseSensitive: event.target.checked })}
-          />
-          <label htmlFor="rule-case">Case sensitive</label>
-        </div>
-      )}
-
-      <div className={styles.field}>
-        <label className={styles.label} htmlFor="rule-alt">
-          Alternative patterns (one per line, OR)
-        </label>
-        <textarea
-          id="rule-alt"
-          className={styles.textarea}
-          style={{ minHeight: 64 }}
-          spellCheck={false}
-          value={(draft.match.patterns ?? []).join('\n')}
-          onChange={(event) => {
-            const lines = event.target.value.split('\n').filter((line) => line.trim());
-            updateMatch({ patterns: lines.length ? lines : undefined });
-          }}
+      <div className={styles.checkboxRow}>
+        <input
+          id="rule-ignore-case"
+          type="checkbox"
+          checked={ignoreCase}
+          onChange={(event) => setIgnoreCase(event.target.checked)}
         />
+        <label htmlFor="rule-ignore-case">Ignore case</label>
       </div>
 
       <div className={styles.sectionTitle}>Target group</div>
@@ -246,7 +196,8 @@ export function RuleEditor({
         </select>
         <span className={styles.hint}>
           Dynamic mode turns each distinct match into its own group — one rule for{' '}
-          <code className={styles.inline}>ticket-\d+</code> produces a group per ticket number.
+          <code className={styles.inline}>ticket-\d+</code> produces a group per ticket number, even
+          when the tabs come from different sites.
         </span>
       </div>
 
@@ -303,22 +254,95 @@ export function RuleEditor({
         <ColorPicker value={draft.group.color} onChange={(color) => updateGroup({ color })} />
       </div>
 
-      <div className={styles.sectionTitle}>Behaviour</div>
-      <div className={styles.grid2}>
-        <div className={styles.field}>
-          <label className={styles.label} htmlFor="rule-priority">
-            Priority (higher wins)
-          </label>
-          <input
-            id="rule-priority"
-            type="number"
-            className={styles.input}
-            value={draft.priority}
-            onChange={(event) => setDraft({ ...draft, priority: Number(event.target.value) || 0 })}
-          />
-        </div>
-        <div className={styles.field}>
-          <span className={styles.label}>Options</span>
+      <details className={styles.advanced}>
+        <summary>Advanced</summary>
+        <div className={styles.advancedBody}>
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="rule-alt">
+              Alternative patterns (one per line, OR)
+            </label>
+            <textarea
+              id="rule-alt"
+              className={styles.textarea}
+              style={{ minHeight: 64 }}
+              spellCheck={false}
+              value={(draft.match.patterns ?? []).join('\n')}
+              onChange={(event) => {
+                const lines = event.target.value.split('\n').filter((line) => line.trim());
+                updateMatch({ patterns: lines.length ? lines : undefined });
+              }}
+            />
+          </div>
+
+          {isRegex ? (
+            <>
+              <div className={styles.field}>
+                <label className={styles.label} htmlFor="rule-flags">
+                  Extra regex flags
+                </label>
+                <input
+                  id="rule-flags"
+                  className={`${styles.input} ${styles.mono}`}
+                  value={(draft.match.flags ?? 'i').replace(/i/g, '')}
+                  placeholder="m s u"
+                  onChange={(event) =>
+                    updateMatch({
+                      flags: `${event.target.value.replace(/[^msuy]/g, '')}${ignoreCase ? 'i' : ''}`,
+                    })
+                  }
+                />
+                <span className={styles.hint}>
+                  `m`, `s`, `u` only — case sensitivity is the Ignore case checkbox. `g` is added
+                  automatically.
+                </span>
+              </div>
+              <div className={styles.grid2}>
+                <div className={styles.field}>
+                  <label className={styles.label} htmlFor="rule-capture-pattern">
+                    Capture pattern (optional)
+                  </label>
+                  <input
+                    id="rule-capture-pattern"
+                    className={`${styles.input} ${styles.mono}`}
+                    value={draft.match.capturePattern ?? ''}
+                    placeholder="e.g. /issues/(\\d+)"
+                    onChange={(event) => updateMatch({ capturePattern: event.target.value || undefined })}
+                  />
+                  <span className={styles.hint}>Extra regex used only to extract $1, $2 …</span>
+                </div>
+                <div className={styles.field}>
+                  <label className={styles.label} htmlFor="rule-capture-target">
+                    Capture from
+                  </label>
+                  <select
+                    id="rule-capture-target"
+                    className={styles.select}
+                    value={draft.match.captureTarget ?? draft.match.target}
+                    onChange={(event) =>
+                      updateMatch({ captureTarget: event.target.value as 'title' | 'url' })
+                    }
+                  >
+                    <option value="title">Title</option>
+                    <option value="url">URL</option>
+                  </select>
+                </div>
+              </div>
+            </>
+          ) : null}
+
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="rule-priority">
+              Priority (higher wins)
+            </label>
+            <input
+              id="rule-priority"
+              type="number"
+              className={styles.input}
+              value={draft.priority}
+              onChange={(event) => setDraft({ ...draft, priority: Number(event.target.value) || 0 })}
+            />
+          </div>
+
           <div className={styles.checkboxRow}>
             <input
               id="rule-collapse"
@@ -347,7 +371,7 @@ export function RuleEditor({
             <label htmlFor="rule-pinned">Include pinned tabs</label>
           </div>
         </div>
-      </div>
+      </details>
 
       <div className={styles.sectionTitle}>Try it</div>
       <div className={styles.field}>

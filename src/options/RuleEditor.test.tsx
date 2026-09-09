@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { createRule } from '../core/rules';
@@ -57,5 +57,25 @@ describe('RuleEditor', () => {
     await user.type(name, 'Renamed');
     await user.click(screen.getByRole('button', { name: 'Save rule' }));
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ name: 'Renamed' }));
+  });
+
+  it('labels the match target consistently', () => {
+    render(<RuleEditor rule={rule} tabs={[]} onSave={vi.fn()} onCancel={vi.fn()} />);
+    const select = screen.getByLabelText('Match against');
+    expect(within(select).getByRole('option', { name: 'Title' })).toBeInTheDocument();
+    expect(within(select).getByRole('option', { name: 'Title or URL' })).toBeInTheDocument();
+  });
+
+  it('controls the regex i flag with the Ignore case checkbox', async () => {
+    const onSave = vi.fn();
+    const user = userEvent.setup();
+    render(<RuleEditor rule={rule} tabs={[]} onSave={onSave} onCancel={vi.fn()} />);
+    const checkbox = screen.getByLabelText('Ignore case');
+    expect(checkbox).toBeChecked();
+    await user.click(checkbox);
+    await user.click(screen.getByRole('button', { name: 'Save rule' }));
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({ match: expect.objectContaining({ flags: '' }) }),
+    );
   });
 });

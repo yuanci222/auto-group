@@ -508,6 +508,43 @@ textarea {
   margin-bottom: 12px;
 }
 
+.advanced {
+  border-top: 1px solid var(--border);
+  margin-top: 18px;
+  padding-top: 12px;
+}
+
+.advanced > summary {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  list-style: none;
+  user-select: none;
+}
+
+.advanced > summary::-webkit-details-marker {
+  display: none;
+}
+
+.advanced > summary::before {
+  content: '▸ ';
+}
+
+.advanced[open] > summary::before {
+  content: '▾ ';
+}
+
+.advanced > summary:hover {
+  color: var(--text);
+}
+
+.advancedBody {
+  padding-top: 14px;
+}
+
 .checkboxRow {
   display: flex;
   align-items: center;
