@@ -1,23 +1,29 @@
 # Auto Group
 
-A Chrome (Manifest V3) extension that groups tabs automatically with regex rules — including
-**one group per matched value**, so a single rule turns `ticket-123`, `ticket-456` and
-`ticket-789` into three separate groups.
+A Chrome (Manifest V3) extension that groups tabs automatically with regex rules.
+
+Two things set it apart from other tab groupers:
+
+- **One group per matched value.** A single rule in *per-match* mode turns every distinct match
+  into its own group — pattern `ticket-\d+` on `document.title` gives `ticket-123`, `ticket-456`
+  and `ticket-789` three separate groups.
+- **`groups | ungrouped` ordering.** Groups stay contiguous on the left, ungrouped tabs on the
+  right, and a new group is inserted after the existing groups and before the first ungrouped tab:
 
 ```
 GroupA | GroupB | GroupC | ticket-123 | ticket-456 | tabA | tabB
 ```
 
+Everything runs locally: no host permissions, no content scripts, no network requests.
+
 ## Features
 
 | Requirement | How it works |
 | --- | --- |
-| **Regex matching like other tab-group extensions** | JavaScript regex with flags, plus `wildcard`, `contains`, `startsWith`, `endsWith`, `exact` and `domain` modes. Match against `document.title`, the URL, or both. Multiple alternative patterns per rule. |
+| **Regex matching** | JavaScript regex with flags, plus `wildcard`, `contains`, `startsWith`, `endsWith`, `exact` and `domain` modes. Match against `document.title`, the URL, or both. Multiple alternative patterns per rule. |
 | **Dynamic matching on `document.title`** | A rule in *per-match* mode with pattern `ticket-\d+` creates a distinct group for every matched value. Use a title template (`ticket-$1`) and capture groups / named captures to name the groups. |
 | **Import / export, merge on import** | Import auto-detects the file format and **merges** — existing rules are never overwritten and semantic duplicates are skipped. Export as the native JSON, as a Tabee / Tab Modifier config, or as a Markdown table. |
 | **Stable tab-strip order** | After grouping, groups are kept contiguous on the left and ungrouped tabs on the right. A newly created `GroupD` lands **after the other groups and before the first ungrouped tab**. Pinned tabs stay first. |
-
-Everything runs locally: no host permissions, no content scripts, no network requests.
 
 ## Install (load the built extension)
 
@@ -107,47 +113,6 @@ mode, pattern and group) are skipped rather than overwritten.
 Session formats carry no rules, so generated rules are **disabled** for you to review before they
 fire.
 
-## Architecture
-
-```
-src/
-  core/                 pure, dependency-free logic (unit tested)
-    types.ts            canonical Rule / RuleSet / Settings model
-    matcher.ts          pattern compilation, tab matching, template interpolation
-    plan.ts             decides which tab joins which group (no chrome.* calls)
-    order.ts            tab-strip ordering + move planning
-    rules.ts            rule construction, normalisation, dedupe keys
-    exporters.ts        native / Tabee / Markdown exporters
-    importers/          one module per third-party format + merge strategy
-  background/           the only code that calls chrome.tabGroups / chrome.tabs mutators
-    reconciler.ts       idempotent, debounced, per-window reconcile
-    index.ts            event wiring + message API
-  shared/               storage + typed messaging used by every page
-  options/              React options UI (CSS modules)
-  popup/                React popup (CSS modules)
-  ui/                   shared React components and hooks
-```
-
-The reconciler is **idempotent**: events only mark a window dirty and schedule a debounced pass.
-Each pass reads the current tabs and groups, builds a plan with pure functions, applies the
-minimal set of `chrome.tabs.group` / `chrome.tabs.move` calls, then re-checks the real tab order
-and corrects it. This avoids the classic event-feedback loop where an extension reacts to its own
-mutations.
-
-Safety rails that keep it from fighting the user:
-
-- tabs in groups the user created are left alone (`onlyUngrouped`);
-- dragging a tab into/out of a group records an override that survives until the tab's title or
-  URL changes;
-- pinned tabs are skipped;
-- our own group titles are tracked so we only manage groups we created.
-
-## Tech stack
-
-React 19 + TypeScript + Vite 8, built with [`@crxjs/vite-plugin`](https://crxjs.dev) (the mature
-Vite scaffold for MV3 extensions), tested with Vitest + Testing Library. Plain CSS modules instead
-of styled-components — the UI is small and this keeps the bundle lean. Package manager: pnpm.
-
 ## Trademarks & compatibility
 
 This is an independent implementation. To help you migrate, it can read and write file formats
@@ -175,3 +140,8 @@ No host permissions, no content scripts, no network access.
 ## Docs
 
 - [`docs/DESIGN.md`](docs/DESIGN.md) — ecosystem research, format notes and design decisions.
+
+## Credits
+
+Research, design and implementation were produced with **Deepseek Harness** running the
+`deepseek-v4.1-flash-expires-on-0910` model.
