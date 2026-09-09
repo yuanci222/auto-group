@@ -36,12 +36,12 @@ const LOILO = JSON.stringify([
 const GUOKAI = JSON.stringify({
   'rule-1a2b3c': {
     id: 'rule-1a2b3c',
-    ruleName: 'Docs',
-    groupName: 'Google Docs',
+    ruleName: 'Vendor',
+    groupName: 'Vendor Portal',
     groupColor: 'blue',
     enabled: true,
-    urlMatches: [{ target: 'hostname', method: 'endsWith', value: 'docs.google.com' }],
-    titleMatches: [{ method: 'includes', value: 'Document', ignoreCase: true }],
+    urlMatches: [{ target: 'hostname', method: 'endsWith', value: 'portal.example.com' }],
+    titleMatches: [{ method: 'includes', value: 'Portal', ignoreCase: true }],
   },
   meta: { name: 'tab-groups-rules', version: 1 },
 });
@@ -52,8 +52,8 @@ const NITZANPAP = JSON.stringify({
   rules: {
     'rule-1': {
       id: 'rule-1',
-      name: 'Work',
-      domains: ['*.atlassian.net', 'title:Jira', '/^https:\\/\\/docs\\.google\\.com\\//'],
+      name: 'Example',
+      domains: ['*.example.net', 'title:Widget', '/^https:\\/\\/intranet\\.example\\.com\\//'],
       color: 'blue',
       enabled: true,
       priority: 1,
@@ -118,7 +118,7 @@ describe('community importers', () => {
     expect(result?.rules).toHaveLength(2);
     const titleRule = result!.rules.find((r) => r.match.target === 'title');
     expect(titleRule?.match.mode).toBe('contains');
-    expect(titleRule?.group.title).toBe('Google Docs');
+    expect(titleRule?.group.title).toBe('Vendor Portal');
   });
 
   it('imports nitzanpap DSL patterns including title: and regex', () => {
@@ -126,8 +126,8 @@ describe('community importers', () => {
     expect(result?.format).toBe('auto-tab-groups-nitzanpap');
     expect(result?.rules).toHaveLength(3);
     const titleRule = result!.rules.find((r) => r.match.target === 'title');
-    expect(titleRule?.match.pattern).toBe('Jira');
-    const regexRule = result!.rules.find((r) => r.match.pattern.includes('docs'));
+    expect(titleRule?.match.pattern).toBe('Widget');
+    const regexRule = result!.rules.find((r) => r.match.pattern.includes('intranet'));
     expect(regexRule?.match.mode).toBe('regex');
   });
 

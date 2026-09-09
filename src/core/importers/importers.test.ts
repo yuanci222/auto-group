@@ -8,16 +8,16 @@ const TAB_MODIFIER_LEGACY = JSON.stringify({
   settings: { enable_new_version_notification: false },
   rules: [
     {
-      name: 'Local dev',
+      name: 'Example intranet',
       detection: 'CONTAINS',
-      url_fragment: '.local',
-      tab: { title: '[DEV] {title}', icon: null, pinned: false, protected: false, unique: false, muted: false, url_matcher: null },
+      url_fragment: '.internal',
+      tab: { title: 'DEV: {title}', icon: null, pinned: false, protected: false, unique: false, muted: false, url_matcher: null },
     },
     {
-      name: 'Pinterest search',
+      name: 'Search pages',
       detection: 'CONTAINS',
-      url_fragment: 'pinterest.com/search',
-      tab: { title: '$1 | Pinterest', icon: null, pinned: false, protected: false, unique: false, muted: false, url_matcher: 'q=([^&]+)' },
+      url_fragment: 'search.example.com/',
+      tab: { title: 'Query: $1', icon: null, pinned: false, protected: false, unique: false, muted: false, url_matcher: 'query=([^&]+)' },
     },
   ],
 });
@@ -25,11 +25,11 @@ const TAB_MODIFIER_LEGACY = JSON.stringify({
 const TABEE_CONFIG = JSON.stringify({
   rules: [
     {
-      id: 'k3f9a2x',
+      id: 'abc1234',
       is_enabled: true,
-      name: 'GitHub Issues',
+      name: 'Issue tracker',
       detection: 'REGEX',
-      url_fragment: 'github\\.com/.+/issues/(\\d+)',
+      url_fragment: 'issues\\.example\\.com/(\\d+)',
       tab: {
         title: 'Issue #$1',
         icon: null,
@@ -37,13 +37,13 @@ const TABEE_CONFIG = JSON.stringify({
         pinned: false,
         protected: false,
         unique: false,
-        group_id: 'dev01',
+        group_id: 'grp1',
         title_matcher: null,
-        url_matcher: '/issues/(\\d+)',
+        url_matcher: '/(\\d+)',
       },
     },
   ],
-  groups: [{ id: 'dev01', title: 'Development\u200b', color: 'orange', collapsed: true }],
+  groups: [{ id: 'grp1', title: 'Example Dev\u200b', color: 'orange', collapsed: true }],
   settings: { theme: 'tabee' },
 });
 
@@ -139,7 +139,7 @@ describe('parseImport format detection', () => {
     expect(result?.format).toBe('tab-modifier');
     expect(result?.rules).toHaveLength(2);
     expect(result?.rules[0]?.match.mode).toBe('contains');
-    expect(result?.rules[0]?.group.title).toBe('Local dev');
+    expect(result?.rules[0]?.group.title).toBe('Example intranet');
   });
 
   it('uses the rule name as the group when Tab Modifier has no group', () => {
@@ -151,11 +151,11 @@ describe('parseImport format detection', () => {
     const { result } = parseImport(TABEE_CONFIG);
     expect(result?.format).toBe('tab-modifier');
     const rule = result!.rules[0]!;
-    expect(rule.group.title).toBe('Development');
+    expect(rule.group.title).toBe('Example Dev');
     expect(rule.group.color).toBe('orange');
-    expect(rule.match.capturePattern).toBe('/issues/(\\d+)');
+    expect(rule.match.capturePattern).toBe('/(\\d+)');
     expect(rule.options?.collapse).toBe(true);
-    expect(rule.source?.ruleId).toBe('k3f9a2x');
+    expect(rule.source?.ruleId).toBe('abc1234');
   });
 
   it('detects Simple Tab Groups and imports catchTabRules as regex rules', () => {

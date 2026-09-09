@@ -148,6 +148,20 @@ React 19 + TypeScript + Vite 8, built with [`@crxjs/vite-plugin`](https://crxjs.
 Vite scaffold for MV3 extensions), tested with Vitest + Testing Library. Plain CSS modules instead
 of styled-components — the UI is small and this keeps the bundle lean. Package manager: pnpm.
 
+## Trademarks & compatibility
+
+This is an independent implementation. To help you migrate, it can read and write file formats
+produced by other tab and session managers. It does **not** include, bundle, copy or reuse any of
+their source code, icons or artwork — the importers were written from the published formats and
+field names, which are functional interoperability details. The automated tests use original
+sample data.
+
+Product names such as Tab Modifier, Tabee, Simple Tab Groups, Tab Manager Plus, Tab Session
+Manager, Session Buddy, OneTab, Toby, Workona, Tablerone, Tab Groups Extension, Auto-Group Tabs,
+Auto Tab Groups, Auto Tab Grouper, Regex Tab Organizer and Tabs Manager are trademarks or product
+names of their respective owners. They are used here only to describe format compatibility
+(nominative use). This project is not affiliated with, sponsored by or endorsed by any of them.
+
 ## Permissions
 
 | Permission | Why |

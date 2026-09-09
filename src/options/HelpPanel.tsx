@@ -119,6 +119,10 @@ export function HelpPanel() {
               so hostname-based rules are generated, disabled, for you to review.
             </li>
           </ul>
+          <p style={{ marginTop: 10, fontSize: 12 }}>
+            Names are used only to describe format compatibility. Auto Group is independent and not
+            affiliated with or endorsed by those extensions, and contains none of their code.
+          </p>
         </div>
       </div>
 
