@@ -71,8 +71,26 @@ export function useRuleSet(): RuleSetStore {
   };
 }
 
+/**
+ * Key-order-insensitive JSON. Chrome's `storage.local` returns objects with
+ * their keys sorted alphabetically, while an in-memory draft keeps insertion
+ * order, so a plain `JSON.stringify` comparison would always look "dirty".
+ */
+function stableStringify(value: unknown): string {
+  return JSON.stringify(value, (_key, val) => {
+    if (val && typeof val === 'object' && !Array.isArray(val)) {
+      const sorted: Record<string, unknown> = {};
+      for (const key of Object.keys(val).sort()) {
+        sorted[key] = (val as Record<string, unknown>)[key];
+      }
+      return sorted;
+    }
+    return val;
+  });
+}
+
 function rulesEqual(a: readonly Rule[], b: readonly Rule[]): boolean {
-  return JSON.stringify(a) === JSON.stringify(b);
+  return stableStringify(a) === stableStringify(b);
 }
 
 export interface DraftRulesStore {
