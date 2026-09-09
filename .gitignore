@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .cache/
+.pnpm-store/
 *.log
 .DS_Store
 auto-group.zip
