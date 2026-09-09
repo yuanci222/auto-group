@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { sendMessage } from '../shared/messages';
 import { Toast, useToast } from '../ui/components';
 import { useTabs } from '../ui/useTabs';
-import { useRuleSet } from '../ui/useRuleSet';
+import { useRuleSet, useDraftRules } from '../ui/useRuleSet';
 import { HelpPanel } from './HelpPanel';
 import { RulesPanel } from './RulesPanel';
 import { SettingsPanel } from './SettingsPanel';
@@ -22,12 +22,13 @@ const NAV: Array<{ id: Section; label: string }> = [
 
 export function App() {
   const store = useRuleSet();
+  const draftRules = useDraftRules(store);
   const tabs = useTabs();
   const { toast, show } = useToast();
   const [section, setSection] = useState<Section>('rules');
   const [reconciling, setReconciling] = useState(false);
 
-  const ruleCount = store.ruleSet?.rules.length ?? 0;
+  const ruleCount = draftRules.rules.length;
 
   const reconcileNow = async () => {
     setReconciling(true);
@@ -96,7 +97,7 @@ export function App() {
         {!store.ready ? (
           <div className={styles.empty}>Loading rules…</div>
         ) : section === 'rules' ? (
-          <RulesPanel store={store} tabs={tabs} notify={show} />
+          <RulesPanel draft={draftRules} tabs={tabs} />
         ) : section === 'test' ? (
           <TestPanel store={store} tabs={tabs} />
         ) : section === 'transfer' ? (

@@ -70,3 +70,82 @@ export function useRuleSet(): RuleSetStore {
     setRules: (rules) => mutate((c) => ({ ...c, rules })),
   };
 }
+
+function rulesEqual(a: readonly Rule[], b: readonly Rule[]): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+export interface DraftRulesStore {
+  rules: Rule[];
+  ready: boolean;
+  /** True when the draft differs from what is stored. */
+  dirty: boolean;
+  /** True for a few seconds after a successful save, for the fade-out bar. */
+  saved: boolean;
+  saving: boolean;
+  addRule: (rule: Rule) => void;
+  replaceRule: (rule: Rule) => void;
+  removeRule: (id: string) => void;
+  toggleRule: (id: string, enabled: boolean) => void;
+  discard: () => void;
+  save: () => Promise<void>;
+}
+
+/**
+ * Draft layer for the Rules panel.
+ *
+ * Rule edits never touch storage immediately — they accumulate here so the user
+ * has to press Save before anything is applied (and before tabs get grouped).
+ * The draft is kept in the parent component so it survives switching panels.
+ */
+export function useDraftRules(store: RuleSetStore): DraftRulesStore {
+  const persisted = store.ruleSet?.rules;
+  const [draft, setDraft] = useState<Rule[] | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  // Adopt the persisted rules on first load, and re-sync when they change
+  // externally (import, another tab) as long as we have no unsaved edits.
+  useEffect(() => {
+    if (!persisted) return;
+    setDraft((current) => {
+      if (current === null) return persisted;
+      return rulesEqual(current, persisted) ? persisted : current;
+    });
+  }, [persisted]);
+
+  useEffect(() => {
+    if (!saved) return;
+    const timer = setTimeout(() => setSaved(false), 4000);
+    return () => clearTimeout(timer);
+  }, [saved]);
+
+  const dirty = persisted !== undefined && draft !== null && !rulesEqual(draft, persisted);
+
+  const save = useCallback(async () => {
+    if (!draft) return;
+    setSaving(true);
+    try {
+      await store.setRules(draft);
+      setSaved(true);
+    } finally {
+      setSaving(false);
+    }
+  }, [draft, store]);
+
+  return {
+    rules: draft ?? [],
+    ready: draft !== null,
+    dirty,
+    saved,
+    saving,
+    addRule: (rule) => setDraft((current) => [...(current ?? []), rule]),
+    replaceRule: (rule) =>
+      setDraft((current) => (current ?? []).map((r) => (r.id === rule.id ? rule : r))),
+    removeRule: (id) => setDraft((current) => (current ?? []).filter((r) => r.id !== id)),
+    toggleRule: (id, enabled) =>
+      setDraft((current) => (current ?? []).map((r) => (r.id === id ? { ...r, enabled } : r))),
+    discard: () => setDraft(persisted ?? []),
+    save,
+  };
+}

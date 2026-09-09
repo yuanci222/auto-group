@@ -45,7 +45,7 @@ describe('RuleEditor', () => {
     await user.clear(pattern);
     await user.type(pattern, '(');
     expect(await screen.findByText(/Invalid regular expression/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Save rule' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Apply' })).toBeDisabled();
   });
 
   it('saves the edited rule', async () => {
@@ -55,7 +55,7 @@ describe('RuleEditor', () => {
     const name = screen.getByDisplayValue('Tickets');
     await user.clear(name);
     await user.type(name, 'Renamed');
-    await user.click(screen.getByRole('button', { name: 'Save rule' }));
+    await user.click(screen.getByRole('button', { name: 'Apply' }));
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ name: 'Renamed' }));
   });
 
@@ -73,7 +73,7 @@ describe('RuleEditor', () => {
     const checkbox = screen.getByLabelText('Ignore case');
     expect(checkbox).toBeChecked();
     await user.click(checkbox);
-    await user.click(screen.getByRole('button', { name: 'Save rule' }));
+    await user.click(screen.getByRole('button', { name: 'Apply' }));
     expect(onSave).toHaveBeenCalledWith(
       expect.objectContaining({ match: expect.objectContaining({ flags: '' }) }),
     );

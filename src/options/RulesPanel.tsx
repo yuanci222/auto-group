@@ -3,7 +3,7 @@ import { createRule, cloneRule, newId } from '../core/rules';
 import { validateMatch } from '../core/matcher';
 import type { Rule, TabInfo } from '../core/types';
 import { Badge, ColorDot, Switch } from '../ui/components';
-import type { RuleSetStore } from '../ui/useRuleSet';
+import type { DraftRulesStore } from '../ui/useRuleSet';
 import { EXAMPLE_RULES } from './examples';
 import { RuleEditor } from './RuleEditor';
 import styles from './options.module.css';
@@ -29,20 +29,12 @@ function groupLabel(rule: Rule): string {
   }
 }
 
-export function RulesPanel({
-  store,
-  tabs,
-  notify,
-}: {
-  store: RuleSetStore;
-  tabs: TabInfo[];
-  notify: (message: string, error?: boolean) => void;
-}) {
+export function RulesPanel({ draft, tabs }: { draft: DraftRulesStore; tabs: TabInfo[] }) {
   const [query, setQuery] = useState('');
   const [editing, setEditing] = useState<Rule | null>(null);
   const [showExamples, setShowExamples] = useState(false);
 
-  const rules = store.ruleSet?.rules ?? [];
+  const rules = draft.rules;
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
     if (!needle) return rules;
@@ -56,18 +48,10 @@ export function RulesPanel({
 
   const invalidCount = rules.filter((rule) => validateMatch(rule.match)).length;
 
-  const saveRule = async (rule: Rule) => {
-    if (rules.some((existing) => existing.id === rule.id)) await store.replaceRule(rule);
-    else await store.addRule(rule);
+  const saveRule = (rule: Rule) => {
+    if (rules.some((existing) => existing.id === rule.id)) draft.replaceRule(rule);
+    else draft.addRule(rule);
     setEditing(null);
-    notify('Rule saved');
-  };
-
-  const addExample = async (index: number) => {
-    const example = EXAMPLE_RULES[index];
-    if (!example) return;
-    await store.addRule(example.build());
-    notify(`Added example: ${example.label}`);
   };
 
   return (
@@ -77,7 +61,8 @@ export function RulesPanel({
           <h1 className={styles.h1}>Rules</h1>
           <p className={styles.subtitle}>
             Rules run top-down by priority whenever a tab is opened, its title changes, or its URL
-            changes. The first match wins.
+            changes. The first match wins. Changes stay local until you press <strong>Save</strong>,
+            so nothing is applied to your tabs by accident.
           </p>
         </div>
       </div>
@@ -125,14 +110,21 @@ export function RulesPanel({
       {showExamples ? (
         <div className={`${styles.card} ${styles.panel}`} style={{ marginBottom: 14 }}>
           <div className={styles.sectionTitle}>Starter rules</div>
+          <p className={styles.hint} style={{ marginTop: 0 }}>
+            Adding an example only edits the draft — press Save below to apply it.
+          </p>
           <div className={styles.exampleList}>
-            {EXAMPLE_RULES.map((example, index) => (
+            {EXAMPLE_RULES.map((example) => (
               <div key={example.label} className={styles.exampleCard}>
                 <div>
                   <div style={{ fontWeight: 600 }}>{example.label}</div>
                   <div className={styles.hint}>{example.description}</div>
                 </div>
-                <button type="button" className={styles.btn} onClick={() => void addExample(index)}>
+                <button
+                  type="button"
+                  className={styles.btn}
+                  onClick={() => draft.addRule(example.build())}
+                >
                   Add
                 </button>
               </div>
@@ -169,7 +161,7 @@ export function RulesPanel({
                 <Switch
                   checked={rule.enabled}
                   label={`Enable ${rule.name}`}
-                  onChange={(value) => void store.toggleRule(rule.id, value)}
+                  onChange={(value) => draft.toggleRule(rule.id, value)}
                 />
                 <div className={styles.ruleMain}>
                   <div className={`${styles.ruleName} ${rule.enabled ? '' : styles.ruleNameDisabled}`}>
@@ -205,7 +197,7 @@ export function RulesPanel({
                     className={`${styles.btn} ${styles.btnGhost}`}
                     title="Duplicate"
                     onClick={() =>
-                      void store.addRule({
+                      draft.addRule({
                         ...cloneRule(rule),
                         id: newId(),
                         name: `${rule.name} copy`,
@@ -217,10 +209,7 @@ export function RulesPanel({
                   <button
                     type="button"
                     className={`${styles.btn} ${styles.btnDanger}`}
-                    onClick={() => {
-                      void store.removeRule(rule.id);
-                      notify('Rule deleted');
-                    }}
+                    onClick={() => draft.removeRule(rule.id)}
                   >
                     Delete
                   </button>
@@ -233,6 +222,29 @@ export function RulesPanel({
           ) : null}
         </div>
       )}
+
+      {draft.dirty || draft.saved ? (
+        <div className={`${styles.saveBar} ${draft.saved && !draft.dirty ? styles.saveBarSaved : ''}`}>
+          {draft.saved && !draft.dirty ? (
+            <span className={styles.saveBarText}>✓ Saved</span>
+          ) : (
+            <>
+              <span className={styles.saveBarText}>Unsaved changes</span>
+              <button type="button" className={styles.saveBarGhost} onClick={draft.discard}>
+                Discard
+              </button>
+              <button
+                type="button"
+                className={styles.saveBarPrimary}
+                disabled={draft.saving}
+                onClick={() => void draft.save()}
+              >
+                {draft.saving ? 'Saving…' : 'Save'}
+              </button>
+            </>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }

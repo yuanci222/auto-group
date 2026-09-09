@@ -96,7 +96,7 @@ export function RuleEditor({
             disabled={Boolean(error) || !draft.match.pattern.trim()}
             onClick={() => onSave(draft)}
           >
-            Save rule
+            Apply
           </button>
         </div>
       </div>
