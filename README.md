@@ -74,12 +74,18 @@ Import auto-detects the file format and **merges** — existing rules are never 
 semantic duplicates are skipped. Export as native JSON, as a Tabee / Tab Modifier config, or as a
 Markdown table.
 
-Supported rule formats include Tab Modifier / Tabee, Simple Tab Groups, Tab Groups Extension,
+Rule formats it can read: Tab Modifier / Tabee, Simple Tab Groups, Tab Groups Extension,
 Auto-Group Tabs (loilo), Auto Tab Groups (nitzanpap), Auto Tab Grouper, Regex Tab Organizer and
 Tabs Manager. Session exports from Tab Manager Plus, Tab Session Manager, Session Buddy, Toby,
 Workona and Tablerone (plus OneTab text and bookmark HTML) are converted into **disabled** starter
 rules for you to review. Format details and field mappings are in
 [`docs/DESIGN.md`](docs/DESIGN.md).
+
+> **Only six of these have been tested against a real export**: Tab Modifier / Tabee 1.x, Tab Groups
+> Extension, Auto-Group Tabs (loilo), Auto Tab Groups (nitzanpap), Simple Tab Groups, and a flat
+> Session Buddy tab list. The rest are written from the published formats and are **unverified** —
+> they may not match the current version of the product. See
+> [Which formats are actually verified](docs/DESIGN.md#which-formats-are-actually-verified).
 
 ## Trademarks & compatibility
 
@@ -111,5 +117,11 @@ No host permissions, no content scripts, no network access.
 
 ## Credits
 
-Research, design and implementation were produced with **Deepseek Harness** running the
-`deepseek-v4.1-flash-expires-on-0910` model.
+Research, design and implementation were produced with **Deepseek Harness**:
+
+- `deepseek-v4.1-flash-expires-on-0910` — initial research, design, matching engine, background
+  reconciler, options and popup UI, and the real-Chrome end-to-end harness.
+- `deepseek-flash` — format-compatibility test suite, captured real-export fixtures, and the later
+  fixes and documentation.
+
+A few smaller edits came from other DeepSeek models in between.
