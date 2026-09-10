@@ -139,12 +139,40 @@ last existing group and the first ungrouped tab.
 `applyTabOrder` re-reads the real order after every move, so it converges regardless of Chrome's
 exact index semantics, and it stops if a tab disappears mid-flight.
 
+### 2.7 Pattern safety
+
+Regexes arrive from three sources we do not control: rules typed by hand, imported rule files, and
+exports shared by other people. A catastrophic pattern would hang the service worker, which stops
+all grouping, so patterns pass through two layers before they are allowed to run:
+
+- **Static** (`src/core/safety.ts`). A pattern longer than `MAX_PATTERN_LENGTH` (1000 characters) is
+  rejected, and so is the unambiguous catastrophic-backtracking shape: a repeated group that itself
+  repeats (`(a+)+`, `(?:a*)*`, `(a{2,})+`, `((a+))+`) or a repeated alternation of literals where
+  one alternative is a prefix of another (`(a|aa)+`, `(foo|foobar)+`). The check is deliberately
+  conservative — a false negative only costs one slow pass before the runtime breaker trips, while
+  a false positive would reject a working rule.
+- **Runtime** (`src/core/matcher.ts`). Every regex execution is timed; a pattern that exceeds 25 ms
+  three times is quarantined and never matched again. This is the backstop for shapes the static
+  check cannot prove, e.g. `(\d|\w)+`.
+
+How the layers surface:
+
+- `validateMatch` reports the reason, so the rule editor blocks saving it and the rule list shows
+  the error next to the rule.
+- `planWindow` filters statically unsafe rules out, so they can never abort a reconcile.
+- `mergeImport` never drops such a rule: it imports it **disabled** and adds a warning that the
+  import preview displays.
+- `matchTab` catches compile errors, so one uncompilable pattern cannot break a reconcile either.
+
 ## 3. Testing
 
-- **154 tests** across unit, component, conformance and fuzz suites:
+- **195 tests** across unit, component, conformance, safety and fuzz suites:
   - `src/**/*.test.ts` cover the matcher (all modes, flags, captures, templates), the planner
     (dynamic grouping, ownership, overrides, priority, colour rotation), the ordering algorithm
     (including the `GroupA|GroupB|GroupC|tabA|tabB|tabC` shape) and the options UI.
+  - `tests/safety.test.ts` covers the ReDoS guard: the catastrophic shapes it must reject, the
+    ordinary patterns it must *not* reject (including our own generated regexes), the planner
+    skipping unsafe rules, imports switching them off, and the runtime quarantine thresholds.
   - `tests/conformance.test.ts` runs a **fixture corpus** — one file-shaped export per supported
     format — through `parseImport` and checks the importer that wins detection, the resulting
     `format`, the rule count, and per-rule mappings (target, mode, pattern, group title, colour,
@@ -218,9 +246,12 @@ written by the **deepseek-flash** agent running on DeepSeek Harness.
 - **Most importers are unverified against real files.** Only six formats have been tested with a
   real export; see [Which formats are actually verified](#which-formats-are-actually-verified).
   Everything else is written from documentation and may not match the current product.
-- **Anti-ReDoS guards.** Imported regexes are compiled as-is. A malicious or careless pattern can
-  be slow. A `backtracksBadly()` probe plus a slow-pattern quarantine (as nitzanpap implements) is
-  the natural next step.
+- **Pattern safety has two residual gaps.** The static check and runtime quarantine described in
+  §2.7 stop a catastrophic pattern from hanging the extension, but (a) a pattern that is slow on its
+  *first* execution still causes one visible stall before the breaker trips, since a running regex
+  cannot be interrupted in JavaScript without a worker, and (b) a quarantine is only written to the
+  service-worker console — the options UI does not surface it yet, so a rule that gets quarantined
+  silently stops matching until the pattern is edited.
 - **`strict` / ungroup semantics.** Auto-Group Tabs' `strict` mode removes a tab from its group
   when the URL stops matching. This extension only re-assigns; it does not ungroup on mismatch.
 - **Cross-window merge.** loilo's `merge` and guokai's `oneGroupInAll` reuse a group across

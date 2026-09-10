@@ -55,7 +55,7 @@ rules, test patterns, and import/export.
 
 ```bash
 pnpm dev            # Vite dev server with HMR for the extension pages
-pnpm test           # unit, format-conformance and fuzz tests (154)
+pnpm test           # unit, conformance, safety and fuzz tests (195)
 pnpm test:compat    # only the third-party format conformance suite
 pnpm test:watch     # watch mode
 pnpm typecheck      # tsc --noEmit

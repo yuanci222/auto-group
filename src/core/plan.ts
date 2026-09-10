@@ -7,6 +7,7 @@
  */
 import { evaluateRule } from './matcher';
 import { NO_GROUP } from './order';
+import { isRuleSafe } from './safety';
 import type {
   GroupColor,
   MatchResult,
@@ -109,7 +110,7 @@ export function planWindow(input: PlanInput): Plan {
 
   if (!settings.enabled) return { actions, createGroups };
 
-  const rules = orderRules(input.rules, settings.evaluation);
+  const rules = orderRules(input.rules, settings.evaluation).filter(isRuleSafe);
   if (rules.length === 0) return { actions, createGroups };
 
   const groupByTitle = new Map<string, GroupInfo>();

@@ -226,6 +226,12 @@ export function TransferPanel({
                   </div>
                 ))}
 
+                {preview?.warnings.map((warning) => (
+                  <div key={warning} className={styles.warn}>
+                    ⚠ {warning}
+                  </div>
+                ))}
+
                 {preview && preview.added.length ? (
                   <div className={styles.preview} style={{ marginTop: 10 }}>
                     <div className={`${styles.previewRow} ${styles.previewHead}`}>

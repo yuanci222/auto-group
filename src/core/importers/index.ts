@@ -4,6 +4,7 @@
  * existing rules).
  */
 import { createRule, newId, normaliseSettings, ruleKey } from '../rules';
+import { isRuleSafe } from '../safety';
 import type { Rule, RuleSet, Settings } from '../types';
 import {
   domainGroupsImporter,
@@ -213,6 +214,8 @@ export interface MergeReport {
   /** Rules that had to be given a fresh id to avoid a collision. */
   reidentified: Rule[];
   settingsApplied: boolean;
+  /** Human readable notes, e.g. rules that were imported disabled. */
+  warnings: string[];
 }
 
 const SETTING_KEYS: Array<keyof Settings> = [
@@ -243,6 +246,8 @@ export function mergeImport(
   const added: Rule[] = [];
   const duplicates: Rule[] = [];
   const reidentified: Rule[] = [];
+  const warnings: string[] = [];
+  let disabledUnsafe = 0;
 
   for (const rule of incoming.rules) {
     const key = ruleKey(rule);
@@ -251,8 +256,14 @@ export function mergeImport(
       continue;
     }
     let next = rule;
-    if (seenIds.has(rule.id)) {
-      next = { ...rule, id: newId() };
+    // A pattern that can backtrack catastrophically is kept (never dropped) but
+    // imported switched off, so it cannot hang the extension before it is seen.
+    if (!isRuleSafe(next)) {
+      next = { ...next, enabled: false };
+      disabledUnsafe += 1;
+    }
+    if (seenIds.has(next.id)) {
+      next = { ...next, id: newId() };
       reidentified.push(next);
     }
     seenKeys.add(key);
@@ -272,11 +283,18 @@ export function mergeImport(
     settingsApplied = true;
   }
 
+  if (disabledUnsafe > 0) {
+    warnings.push(
+      `${disabledUnsafe} rule(s) have a pattern that could backtrack catastrophically and were imported disabled — review them in the Rules list.`,
+    );
+  }
+
   return {
     ruleSet: { ...base, rules: [...base.rules, ...added], settings },
     added,
     duplicates,
     reidentified,
     settingsApplied,
+    warnings,
   };
 }

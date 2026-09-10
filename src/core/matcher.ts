@@ -4,6 +4,7 @@
  * Pure functions only: no `chrome.*` access, so this module is fully unit
  * testable under Node/Vitest.
  */
+import { assessPattern } from './safety';
 import type { MatchResult, Rule, RuleMatch, TabInfo } from './types';
 
 /** Thrown when a rule contains an invalid pattern. Never thrown at match time. */
@@ -15,6 +16,65 @@ export class PatternError extends Error {
     super(message);
     this.name = 'PatternError';
   }
+}
+
+// --- runtime circuit breaker -------------------------------------------------
+
+/** A single match that takes longer than this counts as slow. */
+const SLOW_EXEC_MS = 25;
+/** How many slow matches a pattern gets before it is quarantined. */
+const QUARANTINE_AFTER = 3;
+
+const slowCounts = new Map<string, number>();
+const quarantined = new Set<string>();
+
+function patternKey(source: string, flags: string): string {
+  // Normalise away the flags we add ourselves so callers can address a pattern
+  // by the flags a user actually wrote.
+  return `${source}\u0000${(flags || '').replace(/[gy]/g, '')}`;
+}
+
+function now(): number {
+  return typeof performance !== 'undefined' && typeof performance.now === 'function'
+    ? performance.now()
+    : Date.now();
+}
+
+function noteExecutionTime(key: string, elapsed: number): void {
+  if (elapsed < SLOW_EXEC_MS) return;
+  const count = (slowCounts.get(key) ?? 0) + 1;
+  slowCounts.set(key, count);
+  if (count >= QUARANTINE_AFTER && !quarantined.has(key)) {
+    quarantined.add(key);
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[auto-group] pattern quarantined after ${count} slow matches: ${key.split('\u0000')[0]}`,
+    );
+  }
+}
+
+/** True when a pattern has been quarantined by the runtime breaker. */
+export function isQuarantined(source: string, flags = ''): boolean {
+  return quarantined.has(patternKey(source, flags));
+}
+
+/**
+ * Record how long a pattern took to execute. Exposed for tests and diagnostics:
+ * `QUARANTINE_AFTER` slow executions quarantine the pattern.
+ */
+export function notePatternTiming(source: string, flags: string, elapsedMs: number): void {
+  noteExecutionTime(patternKey(source, flags), elapsedMs);
+}
+
+/** Patterns the runtime breaker has disabled, for diagnostics. */
+export function getQuarantinedPatterns(): string[] {
+  return [...quarantined].map((key) => key.split('\u0000')[0] ?? key);
+}
+
+/** Forget all quarantine state. Used by tests and when rules are replaced. */
+export function resetPatternSafety(): void {
+  slowCounts.clear();
+  quarantined.clear();
 }
 
 const regexCache = new Map<string, RegExp>();
@@ -70,12 +130,15 @@ export function validateMatch(match: RuleMatch): string | null {
     (p): p is string => typeof p === 'string' && p.length > 0,
   );
   if (patterns.length === 0) return 'Pattern is empty';
-  if (match.mode !== 'regex') return null;
   for (const pattern of patterns) {
-    try {
-      compileRegex(pattern, match.flags);
-    } catch (err) {
-      return err instanceof Error ? err.message : String(err);
+    const assessment = assessPattern(pattern, match.mode);
+    if (!assessment.ok) return assessment.reason ?? 'Pattern is unsafe';
+    if (match.mode === 'regex') {
+      try {
+        compileRegex(pattern, match.flags);
+      } catch (err) {
+        return err instanceof Error ? err.message : String(err);
+      }
     }
   }
   return null;
@@ -105,8 +168,12 @@ interface RawMatch {
 }
 
 function execRegex(re: RegExp, value: string, pattern: string): RawMatch | null {
+  const key = patternKey(re.source, re.flags);
+  if (quarantined.has(key)) return null;
   re.lastIndex = 0;
+  const started = now();
   const m = re.exec(value);
+  noteExecutionTime(key, now() - started);
   if (!m) return null;
   return {
     match: m[0],
@@ -159,13 +226,27 @@ export function matchTab(rule: Rule, tab: TabInfo): RawMatch | null {
   for (const { kind, value } of haystacks(match, tab)) {
     if (!value) continue;
     for (const pattern of patterns) {
-      const hit = matchOne(pattern, match, value);
+      let hit: RawMatch | null;
+      try {
+        hit = matchOne(pattern, match, value);
+      } catch {
+        // An uncompilable pattern must never abort a reconcile.
+        continue;
+      }
       if (!hit) continue;
       if (match.capturePattern) {
         const capTarget = match.captureTarget ?? kind;
         const capValue = capTarget === 'title' ? tab.title ?? '' : tab.url ?? '';
-        const captured = execRegex(compileRegex(match.capturePattern, match.flags), capValue, pattern);
-        if (captured) return { ...captured, pattern };
+        try {
+          const captured = execRegex(
+            compileRegex(match.capturePattern, match.flags),
+            capValue,
+            pattern,
+          );
+          if (captured) return { ...captured, pattern };
+        } catch {
+          // Same: fall back to the detection match below.
+        }
       }
       return hit;
     }
@@ -243,6 +324,8 @@ export function testPattern(
   if (patterns.length === 0) return { ok: false, error: 'Pattern is empty' };
   const results: RawMatch[] = [];
   for (const pattern of patterns) {
+    const assessment = assessPattern(pattern, match.mode);
+    if (!assessment.ok) return { ok: false, error: assessment.reason ?? 'Pattern is unsafe' };
     try {
       if (match.mode === 'regex') {
         const re = compileRegex(pattern, match.flags);
