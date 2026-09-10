@@ -2,6 +2,7 @@
   "name": "auto-group",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "description": "Automatically group Chrome tabs with regex rules, dynamic per-match groups and multi-format rule import/export.",
   "type": "module",
   "packageManager": "pnpm@11.7.0",

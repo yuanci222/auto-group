@@ -125,3 +125,7 @@ Research, design and implementation were produced with **Deepseek Harness**:
   fixes and documentation.
 
 A few smaller edits came from other DeepSeek models in between.
+
+## License
+
+[MIT](LICENSE) © 2026 yuanci222
