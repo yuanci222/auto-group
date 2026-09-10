@@ -48,6 +48,9 @@ Then in Chrome:
 Click the toolbar icon for a quick “Run rules on this window”, or open the options page to manage
 rules, test patterns, and import/export.
 
+**Browser support:** Chromium-based browsers only (Chrome, Edge, Brave, Opera…). It uses the
+Manifest V3 `tabGroups` API, so it will not install or work on Firefox.
+
 > Chrome's branded builds ignore `--load-extension` on the command line, so the `chrome://extensions`
 > flow above (or Chrome for Testing) is the supported way to load it.
 
@@ -110,6 +113,13 @@ names of their respective owners. They are used here only to describe format com
 | `storage` | keep your rules locally |
 
 No host permissions, no content scripts, no network access.
+
+## Known limitations
+
+- **Large windows can be slow to reorder.** With *Keep groups on the left* enabled, tabs are moved
+  one at a time, so a window with many hundreds of tabs can briefly churn when its groups change.
+  A window that is already in order is left alone, so this only shows up when grouping actually
+  changes. Turn that setting off if you keep very large windows.
 
 ## Docs
 

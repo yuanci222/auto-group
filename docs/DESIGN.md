@@ -258,5 +258,13 @@ written by the **deepseek-flash** agent running on DeepSeek Harness.
   windows. This extension is per-window by design.
 - **AND conditions.** Tabs Manager combines `hostContains` AND `urlContains` AND `titleContains`.
   Those are imported as OR with a warning, because the canonical model is OR-based.
+- **Reordering is O(n) single-tab moves.** `applyTabOrder` moves one tab at a time and re-reads the
+  window after every move. That is what makes it robust to Chrome's exact index semantics, but it
+  also means a window with many hundreds of tabs — or a large group being created for the first
+  time — can spend a while visibly churning. Steady state is one query and zero moves, because an
+  already-ordered window is left alone. If it ever becomes a problem, the fix is to batch
+  contiguous runs into a single `chrome.tabs.move([ids], { index })` and drop the per-move
+  re-query; both were left alone because the current version is verified end-to-end and that
+  optimisation is easy to get subtly wrong.
 - **Storage.** Rules live in `chrome.storage.local`; there is no sync or cloud backup. Export is
   the sharing mechanism.
