@@ -141,7 +141,7 @@ exact index semantics, and it stops if a tab disappears mid-flight.
 
 ## 3. Testing
 
-- **135 tests** across unit, component, conformance and fuzz suites:
+- **154 tests** across unit, component, conformance and fuzz suites:
   - `src/**/*.test.ts` cover the matcher (all modes, flags, captures, templates), the planner
     (dynamic grouping, ownership, overrides, priority, colour rotation), the ordering algorithm
     (including the `GroupA|GroupB|GroupC|tabA|tabB|tabC` shape) and the options UI.
@@ -169,7 +169,11 @@ exact index semantics, and it stops if a tab disappears mid-flight.
 The conformance corpus paid for itself immediately: it exposed that Session Buddy's documented
 export is `{collections:[{folders:[{links:[…]}]}]}` (the importer only understood `windows/tabs`)
 and that Workona exports a capitalised `Workspaces` key, plus that `sanitiseRule` dropped
-`capturePattern` / `captureTarget` on a native export round-trip.
+`capturePattern` / `captureTarget` on a native export round-trip. Dropping in real exports from
+Tabee, Tab Groups Extension, loilo, nitzanpap, Simple Tab Groups and Session Buddy then found that
+Simple Tab Groups stores `iconColor` as a hex string (`#0000ff`) rather than a Chrome colour name,
+so real backups lost their group colours — the mapper now covers hex swatches with a nearest-colour
+fallback. Those six real exports are pinned in `tests/fixtures/index.ts` with per-rule assertions.
 
 ## 4. Known limitations / future work
 

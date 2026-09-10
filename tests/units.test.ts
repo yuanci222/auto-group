@@ -3,7 +3,7 @@ import { matchPatternToRegex } from '../src/core/importers/community';
 import { mergeImport, parseImport } from '../src/core/importers';
 import { splitCatchTabRules } from '../src/core/importers/simpleTabGroups';
 import { createRule } from '../src/core/rules';
-import { createEmptyRuleSet } from '../src/core/types';
+import { GROUP_COLORS, createEmptyRuleSet } from '../src/core/types';
 
 describe('matchPatternToRegex', () => {
   it('compiles host/path patterns', () => {
@@ -30,6 +30,32 @@ describe('splitCatchTabRules', () => {
   it('splits on newlines and trims', () => {
     expect(splitCatchTabRules('a\n  b \n\nc')).toEqual(['a', 'b', 'c']);
     expect(splitCatchTabRules(undefined)).toEqual([]);
+  });
+});
+
+describe('Simple Tab Groups colours', () => {
+  it('maps the hex swatches real backups contain', () => {
+    const text = JSON.stringify({
+      version: '5.3.2',
+      groups: [
+        { id: 1, title: 'A', iconColor: '#0000ff', catchTabRules: 'a', tabs: [] },
+        { id: 2, title: 'B', iconColor: '#ff9900', catchTabRules: 'b', tabs: [] },
+        { id: 3, title: 'C', iconColor: '#00ff00', catchTabRules: 'c', tabs: [] },
+        { id: 4, title: 'D', iconColor: 'turquoise', catchTabRules: 'd', tabs: [] },
+        { id: 5, title: 'E', iconColor: '#123456', catchTabRules: 'e', tabs: [] },
+        { id: 6, title: 'F', iconColor: 'not-a-colour', catchTabRules: 'f', tabs: [] },
+      ],
+    });
+    const { result } = parseImport(text);
+    expect(result?.rules.slice(0, 4).map((rule) => rule.group.color)).toEqual([
+      'blue',
+      'orange',
+      'green',
+      'cyan',
+    ]);
+    // Unknown hex falls back to the nearest Chrome colour, junk is dropped.
+    expect(GROUP_COLORS).toContain(result?.rules[4]?.group.color);
+    expect(result?.rules[5]?.group.color).toBeUndefined();
   });
 });
 

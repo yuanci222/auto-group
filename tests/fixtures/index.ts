@@ -9,7 +9,11 @@
  *  1. drop the file in `tests/fixtures/real/<importer-id>/` for smoke coverage, or
  *  2. add an entry here with an explicit expectation.
  */
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import type { GroupColor, MatchMode, MatchTarget, Rule } from '../../src/core/types';
+
+const REAL_DIR = new URL('./real/', import.meta.url).pathname;
 
 export interface ExpectedRule {
   target?: MatchTarget;
@@ -34,6 +38,8 @@ export interface Fixture {
   data?: unknown;
   /** raw text for text/HTML formats */
   text?: string;
+  /** path under `tests/fixtures/real/` for a captured real export */
+  file?: string;
   rules: number;
   skipped?: number;
   allDisabled?: boolean;
@@ -42,6 +48,7 @@ export interface Fixture {
 }
 
 export function fixtureText(fixture: Fixture): string {
+  if (fixture.file) return readFileSync(join(REAL_DIR, fixture.file), 'utf8');
   return fixture.text ?? JSON.stringify(fixture.data);
 }
 
@@ -548,5 +555,111 @@ export const FIXTURES: Fixture[] = [
     data: [{ pattern: 'foo-.*', group: 'Foo' }],
     rules: 1,
     contains: [{ pattern: 'foo-.*', groupTitle: 'Foo' }],
+  },
+
+  // --- captured real exports (see tests/fixtures/real/TEST-KIT.md) -----------
+  {
+    name: 'real: Tabee config',
+    importer: 'tab-modifier',
+    format: 'tab-modifier',
+    file: 'tab-modifier/tabee.config.json',
+    rules: 6,
+    contains: [
+      { target: 'url', mode: 'contains', pattern: 'news.ycombinator.com', groupTitle: 'News', color: 'orange', enabled: true },
+      { target: 'url', mode: 'contains', pattern: 'example.com/disabled', groupTitle: 'News', color: 'orange', enabled: false },
+      { target: 'url', mode: 'startsWith', pattern: 'https://docs.google.com/', groupTitle: 'Docs', color: 'green' },
+      { target: 'url', mode: 'endsWith', pattern: '.pdf', groupTitle: 'PDFs', color: 'red' },
+      {
+        target: 'url',
+        mode: 'regex',
+        pattern: 'github\\.com/.+/issues/\\d+',
+        groupTitle: 'Issues',
+        color: 'purple',
+        capturePattern: '/issues/(\\d+)',
+      },
+    ],
+    warningsContain: ['no tab group'],
+  },
+  {
+    name: 'real: Tab Groups Extension rules',
+    importer: 'tab-groups-extension',
+    format: 'tab-groups-extension',
+    file: 'tab-groups-extension/tabgroups_rules_20260910.json',
+    rules: 5,
+    contains: [
+      { target: 'url', mode: 'endsWith', pattern: 'news.ycombinator.com', groupTitle: 'News', color: 'orange' },
+      { target: 'url', mode: 'contains', pattern: 'docs.google.com', groupTitle: 'Docs', color: 'green' },
+      { target: 'title', mode: 'regex', pattern: 'ticket-\\d+', groupTitle: 'Tickets', color: 'blue' },
+      { target: 'url', mode: 'exact', pattern: 'https://example.com/', groupTitle: 'Exact', color: 'pink' },
+      { target: 'url', mode: 'contains', pattern: 'example.com/disabled', groupTitle: 'News', enabled: false },
+    ],
+  },
+  {
+    name: 'real: Auto-Group Tabs (loilo)',
+    importer: 'auto-group-tabs-loilo',
+    format: 'auto-group-tabs-loilo',
+    file: 'auto-group-tabs-loilo/auto-group-tabs-export--2026-09-10_22_45_33.json',
+    rules: 5,
+    contains: [
+      { target: 'url', mode: 'regex', pattern: '^https?://github\\.com/.*', groupTitle: 'GitHub', color: 'purple' },
+      {
+        target: 'url',
+        mode: 'regex',
+        pattern: '^https?://([^/]+\\.)?githubusercontent\\.com/.*',
+        groupTitle: 'GitHub',
+      },
+      { target: 'url', mode: 'regex', pattern: '^https:\\/\\/docs\\.google\\.com\\/', groupTitle: 'Docs', color: 'green' },
+      { target: 'url', mode: 'regex', pattern: '^https?://127\\.0\\.0\\.1/.*', groupTitle: 'Local', color: 'red' },
+      { target: 'url', mode: 'regex', pattern: '^https?://example\\.com/.*', groupTitle: 'Strict', color: 'blue' },
+    ],
+    warningsContain: ['merged groups across windows'],
+  },
+  {
+    name: 'real: Auto Tab Groups (nitzanpap)',
+    importer: 'auto-tab-groups-nitzanpap',
+    format: 'auto-tab-groups-nitzanpap',
+    file: 'auto-tab-groups-nitzanpap/auto-tab-groups-rules-2026-09-10.json',
+    rules: 5,
+    contains: [
+      { target: 'title', mode: 'contains', pattern: 'widget', groupTitle: 'Example', color: 'blue' },
+      { target: 'url', mode: 'regex', patternContains: 'example\\.com', groupTitle: 'Example' },
+      {
+        target: 'url',
+        mode: 'regex',
+        patternContains: 'console\\.aws\\.amazon\\.com',
+        groupTitle: 'AWS',
+        color: 'orange',
+      },
+      { target: 'url', mode: 'domain', pattern: 'example.org', groupTitle: 'Exclusions', color: 'grey' },
+    ],
+    warningsContain: ['!mail.google.com'],
+  },
+  {
+    name: 'real: Simple Tab Groups backup',
+    importer: 'simple-tab-groups',
+    format: 'simple-tab-groups',
+    file: 'simple-tab-groups/manual-stg-backup-2026-09-10@drive4ik.json',
+    rules: 4,
+    skipped: 1,
+    contains: [
+      {
+        target: 'url',
+        mode: 'regex',
+        pattern: '^https?://(.*\\.)?github\\.com/.*',
+        patterns: ['^https?://gist\\.github\\.com/.*'],
+        groupTitle: 'GitHub',
+        color: 'blue',
+      },
+      { target: 'url', mode: 'regex', pattern: 'news\\.ycombinator\\.com', groupTitle: 'News', color: 'orange' },
+      { target: 'url', mode: 'domain', pattern: 'youtube.com', groupTitle: 'NoRules', color: 'green', enabled: false },
+    ],
+  },
+  {
+    name: 'real: Session Buddy flat tab list',
+    importer: 'session',
+    format: 'tab-list',
+    file: 'tab-list/session-buddy-flat-list.json',
+    rules: 1,
+    contains: [{ target: 'url', mode: 'regex', groupTitle: '$1', enabled: false }],
   },
 ];

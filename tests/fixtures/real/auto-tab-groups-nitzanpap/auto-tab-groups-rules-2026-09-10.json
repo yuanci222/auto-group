@@ -1,0 +1,46 @@
+{
+  "version": "1.0",
+  "exportDate": "2026-09-10T14:48:55.123Z",
+  "rules": {
+    "rule-1789051661143-zzmn13k9q": {
+      "id": "rule-1789051661143-zzmn13k9q",
+      "name": "Example",
+      "domains": [
+        "*.example.com",
+        "title:widget",
+        "/^https:\\/\\/intranet\\.example\\.com\\//"
+      ],
+      "color": "blue",
+      "enabled": true,
+      "priority": 1,
+      "isBlacklist": false,
+      "createdAt": "2026-09-10T14:47:41.143Z"
+    },
+    "rule-1789051691568-rfkv7uomt": {
+      "id": "rule-1789051691568-rfkv7uomt",
+      "name": "AWS",
+      "domains": [
+        "{accountid}-*.{region}.console.aws.amazon.com"
+      ],
+      "color": "orange",
+      "enabled": true,
+      "priority": 5,
+      "isBlacklist": false,
+      "createdAt": "2026-09-10T14:48:11.568Z"
+    },
+    "rule-1789051725176-eipj82xkg": {
+      "id": "rule-1789051725176-eipj82xkg",
+      "name": "Exclusions",
+      "domains": [
+        "!mail.google.com",
+        "example.org"
+      ],
+      "color": "grey",
+      "enabled": true,
+      "priority": 1,
+      "isBlacklist": false,
+      "createdAt": "2026-09-10T14:48:45.176Z"
+    }
+  },
+  "totalRules": 3
+}

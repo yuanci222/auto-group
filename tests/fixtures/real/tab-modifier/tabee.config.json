@@ -1,0 +1,149 @@
+{
+    "rules": [
+        {
+            "id": "a4b9dah",
+            "is_enabled": false,
+            "name": "Disabled rule",
+            "detection": "CONTAINS",
+            "url_fragment": "example.com/disabled",
+            "tab": {
+                "title": "",
+                "icon": null,
+                "pinned": false,
+                "protected": false,
+                "unique": false,
+                "muted": false,
+                "title_matcher": null,
+                "url_matcher": null,
+                "group_id": "eqgc5yc"
+            }
+        },
+        {
+            "id": "1rgy452",
+            "is_enabled": true,
+            "name": "No group rule",
+            "detection": "CONTAINS",
+            "url_fragment": "example.com/no-group",
+            "tab": {
+                "title": "",
+                "icon": null,
+                "pinned": false,
+                "protected": false,
+                "unique": false,
+                "muted": false,
+                "title_matcher": null,
+                "url_matcher": null,
+                "group_id": null
+            }
+        },
+        {
+            "id": "zvp69u5",
+            "is_enabled": true,
+            "name": "PDF",
+            "detection": "ENDS_WITH",
+            "url_fragment": ".pdf",
+            "tab": {
+                "title": "",
+                "icon": null,
+                "pinned": false,
+                "protected": false,
+                "unique": false,
+                "muted": false,
+                "title_matcher": null,
+                "url_matcher": null,
+                "group_id": "n1ppuvz"
+            }
+        },
+        {
+            "id": "tu0djns",
+            "is_enabled": true,
+            "name": "Issue tracker",
+            "detection": "REGEX",
+            "url_fragment": "github\\.com/.+/issues/\\d+",
+            "tab": {
+                "title": "",
+                "icon": null,
+                "pinned": false,
+                "protected": false,
+                "unique": false,
+                "muted": false,
+                "title_matcher": "Issue #$1",
+                "url_matcher": "/issues/(\\d+)",
+                "group_id": "fghex1e"
+            }
+        },
+        {
+            "id": "kboqd30",
+            "is_enabled": true,
+            "name": "Docs",
+            "detection": "STARTS_WITH",
+            "url_fragment": "https://docs.google.com/",
+            "tab": {
+                "title": "",
+                "icon": null,
+                "pinned": false,
+                "protected": false,
+                "unique": false,
+                "muted": false,
+                "title_matcher": null,
+                "url_matcher": null,
+                "group_id": "et2yl95"
+            }
+        },
+        {
+            "id": "wcptxnl",
+            "is_enabled": true,
+            "name": "News",
+            "detection": "CONTAINS",
+            "url_fragment": "news.ycombinator.com",
+            "tab": {
+                "title": "",
+                "icon": null,
+                "pinned": false,
+                "protected": false,
+                "unique": false,
+                "muted": false,
+                "title_matcher": null,
+                "url_matcher": null,
+                "group_id": "eqgc5yc"
+            }
+        }
+    ],
+    "groups": [
+        {
+            "title": "Issues​",
+            "color": "purple",
+            "collapsed": false,
+            "id": "fghex1e"
+        },
+        {
+            "title": "Docs​",
+            "color": "green",
+            "collapsed": false,
+            "id": "et2yl95"
+        },
+        {
+            "title": "News​",
+            "color": "orange",
+            "collapsed": false,
+            "id": "eqgc5yc"
+        },
+        {
+            "title": "PDFs​",
+            "color": "red",
+            "collapsed": false,
+            "id": "n1ppuvz"
+        }
+    ],
+    "settings": {
+        "theme": "dim",
+        "lightweight_mode_enabled": false,
+        "lightweight_mode_patterns": [],
+        "lightweight_mode_apply_to_rules": true,
+        "lightweight_mode_apply_to_tab_hive": true,
+        "auto_close_enabled": false,
+        "auto_close_timeout": 30,
+        "tab_hive_reject_list": [],
+        "debug_mode": false
+    }
+}

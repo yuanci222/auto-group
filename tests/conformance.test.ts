@@ -81,12 +81,17 @@ function listRealFixtures(): Array<{ target: string; file: string; text: string 
 
 describe('real export drop-in', () => {
   const real = listRealFixtures();
+  const curated = new Set(
+    FIXTURES.map((fixture) => fixture.file).filter((file): file is string => Boolean(file)),
+  );
 
   it('has a drop-in folder', () => {
     expect(existsSync(REAL_DIR)).toBe(true);
   });
 
   for (const item of real) {
+    // Files with a curated expectation are already covered by the strict block above.
+    if (curated.has(item.file)) continue;
     it(`${item.file} is detected as ${item.target}`, () => {
       const outcome = parseImport(item.text);
       const result = outcome.result;

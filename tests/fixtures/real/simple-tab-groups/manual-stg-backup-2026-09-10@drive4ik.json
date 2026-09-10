@@ -1,0 +1,165 @@
+{
+    "version": "5.3.2",
+    "groups": [
+        {
+            "id": 1,
+            "title": "GitHub",
+            "iconColor": "#0000ff",
+            "iconUrl": null,
+            "iconViewType": "main-squares",
+            "tabs": [
+                {
+                    "url": "moz-extension://00ddb5f5-1e42-4c30-8b6c-78d5ade29c52/manage/manage.html",
+                    "title": "管理群组",
+                    "id": 6
+                },
+                {
+                    "url": "moz-extension://00ddb5f5-1e42-4c30-8b6c-78d5ade29c52/options/options.html",
+                    "title": "设置",
+                    "id": 8
+                }
+            ],
+            "isArchive": false,
+            "discardTabsAfterHide": false,
+            "discardExcludeAudioTabs": false,
+            "prependTitleToWindow": false,
+            "exportToBookmarksWhenAutoBackup": false,
+            "leaveBookmarksOfClosedTabs": false,
+            "newTabContainer": "firefox-default",
+            "ifDifferentContainerReOpen": false,
+            "excludeContainersForReOpen": [],
+            "isSticky": false,
+            "catchTabContainers": [],
+            "catchTabRules": "^https?://(.*\\.)?github\\.com/.*\n^https?://gist\\.github\\.com/.*",
+            "moveToGroupIfNoneCatchTabRules": null,
+            "muteTabsWhenGroupCloseAndRestoreWhenOpen": false,
+            "showTabAfterMovingItIntoThisGroup": false,
+            "showOnlyActiveTabAfterMovingItIntoThisGroup": false,
+            "showNotificationAfterMovingTabIntoThisGroup": true,
+            "bookmarkId": null
+        },
+        {
+            "id": 2,
+            "title": "News",
+            "iconColor": "#ff9900",
+            "iconUrl": null,
+            "iconViewType": "main-squares",
+            "tabs": [],
+            "isArchive": false,
+            "discardTabsAfterHide": false,
+            "discardExcludeAudioTabs": false,
+            "prependTitleToWindow": false,
+            "exportToBookmarksWhenAutoBackup": false,
+            "leaveBookmarksOfClosedTabs": false,
+            "newTabContainer": "firefox-default",
+            "ifDifferentContainerReOpen": false,
+            "excludeContainersForReOpen": [],
+            "isSticky": false,
+            "catchTabContainers": [],
+            "catchTabRules": "news\\.ycombinator\\.com",
+            "moveToGroupIfNoneCatchTabRules": null,
+            "muteTabsWhenGroupCloseAndRestoreWhenOpen": false,
+            "showTabAfterMovingItIntoThisGroup": false,
+            "showOnlyActiveTabAfterMovingItIntoThisGroup": false,
+            "showNotificationAfterMovingTabIntoThisGroup": true,
+            "bookmarkId": null
+        },
+        {
+            "id": 3,
+            "title": "NoRules",
+            "iconColor": "#00ff00",
+            "iconUrl": null,
+            "iconViewType": "main-squares",
+            "tabs": [
+                {
+                    "url": "about:newtab",
+                    "title": "New Tab",
+                    "id": 5
+                },
+                {
+                    "url": "https://www.youtube.com/",
+                    "title": "YouTube",
+                    "id": 7
+                }
+            ],
+            "isArchive": false,
+            "discardTabsAfterHide": false,
+            "discardExcludeAudioTabs": false,
+            "prependTitleToWindow": false,
+            "exportToBookmarksWhenAutoBackup": false,
+            "leaveBookmarksOfClosedTabs": false,
+            "newTabContainer": "firefox-default",
+            "ifDifferentContainerReOpen": false,
+            "excludeContainersForReOpen": [],
+            "isSticky": false,
+            "catchTabContainers": [],
+            "catchTabRules": "",
+            "moveToGroupIfNoneCatchTabRules": null,
+            "muteTabsWhenGroupCloseAndRestoreWhenOpen": false,
+            "showTabAfterMovingItIntoThisGroup": false,
+            "showOnlyActiveTabAfterMovingItIntoThisGroup": false,
+            "showNotificationAfterMovingTabIntoThisGroup": true,
+            "bookmarkId": null
+        }
+    ],
+    "lastCreatedGroupPosition": 3,
+    "defaultGroupProps": {},
+    "closePopupAfterChangeGroup": true,
+    "closePopupAfterSelectTab": false,
+    "openGroupAfterChange": false,
+    "alwaysAskNewGroupName": true,
+    "createNewGroupWhenOpenNewWindow": false,
+    "openManageGroupsInTab": true,
+    "showConfirmDialogBeforeGroupArchiving": true,
+    "showConfirmDialogBeforeGroupDelete": true,
+    "showNotificationAfterGroupDelete": true,
+    "showContextMenuOnTabs": true,
+    "showContextMenuOnLinks": true,
+    "defaultBookmarksParent": "toolbar_____",
+    "showExtendGroupsPopupWithActiveTabs": false,
+    "showTabsWithThumbnailsInManageGroups": false,
+    "fullPopupWidth": false,
+    "temporaryContainerTitle": "⌚临时身份标签页容器",
+    "contextMenuTab": [
+        "open-in-new-window",
+        "reload",
+        "discard",
+        "remove",
+        "update-thumbnail",
+        "set-group-icon",
+        "move-tab-to-group"
+    ],
+    "contextMenuGroup": [
+        "open-in-new-window",
+        "sort-asc",
+        "sort-desc",
+        "discard",
+        "discard-other",
+        "export-to-bookmarks",
+        "unload",
+        "archive",
+        "rename",
+        "reload-all-tabs"
+    ],
+    "autoBackupEnable": false,
+    "autoBackupLastBackupTimeStamp": 1,
+    "autoBackupIntervalKey": "days",
+    "autoBackupIntervalValue": 1,
+    "autoBackupIncludeTabThumbnails": true,
+    "autoBackupIncludeTabFavIcons": true,
+    "autoBackupFolderName": "STG-backups-FF-155.0.1",
+    "autoBackupByDayIndex": true,
+    "theme": "auto",
+    "hotkeys": [
+        {
+            "value": "MacCtrl+Backquote",
+            "action": "load-next-group",
+            "groupId": 0
+        },
+        {
+            "value": "MacCtrl+Shift+Backquote",
+            "action": "load-prev-group",
+            "groupId": 0
+        }
+    ]
+}

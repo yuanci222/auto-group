@@ -76,12 +76,14 @@ No title matching in this extension; matchers are Chrome match patterns or
 | --- | --- | --- | --- | --- |
 | 1 | `GitHub` | purple | `github.com/*` and `*://*.githubusercontent.com/*` | |
 | 2 | `Docs` | green | `/^https:\/\/docs\.google\.com\//i` | |
-| 3 | `Local` | red | `http://localhost:*/**` and `*://127.0.0.1/*` | |
+| 3 | `Local` | red | `*://127.0.0.1/*` | |
 | 4 | `Strict` | blue | `example.com/*` | `strict` on, `merge` on |
 
+> The plugin rejects `http://localhost:*/**` as an invalid match pattern, so
+> `*://127.0.0.1/*` is what actually lands in the export.
+
 Exercises: match pattern without a scheme, `*://*.host/*`, explicit
-`/regex/flags`, ports, `**`, and the `strict` / `merge` options (we warn about
-`merge`).
+`/regex/flags`, and the `strict` / `merge` options (we warn about `merge`).
 
 ---
 
@@ -91,9 +93,12 @@ The `domains` list is the DSL: `*`, `**`, `{capture}`, `title:`, `/regex/`, `!`.
 
 | # | name | colour | domains | priority |
 | --- | --- | --- | --- | --- |
-| 1 | `Example` | blue | `*.example.com`, `title:Widget`, `/^https:\/\/intranet\.example\.com\//` | 0 |
+| 1 | `Example` | blue | `*.example.com`, `title:Widget`, `/^https:\/\/intranet\.example\.com\//` | 1 |
 | 2 | `AWS` | orange | `{accountId}-*.{region}.console.aws.amazon.com` | 5 |
-| 3 | `Exclusions` | grey | `!mail.google.com`, `example.org` | 0 |
+| 3 | `Exclusions` | grey | `!mail.google.com`, `example.org` | 1 |
+
+The priority field has a minimum of **1**, so that is the lowest value the UI
+accepts.
 
 Exercises: wildcard subdomain, `title:` prefix, inline regex, the `{capture}`
 DSL (→ our per-match groups), non-zero priority, and negation (we skip it and
@@ -112,6 +117,12 @@ Not rules — just content, so the `collections → folders → links` shape is 
 4. Export JSON.
 
 Exercises: `collections[].folders[].links[]`, folder titles → group names.
+
+> **What we actually captured:** exporting the *current window* produces a flat
+> `[{ title, url }]` array, which our parser correctly classifies as `tab-list`
+> (one disabled "group every site by domain" rule), not `session-buddy`. That
+> file lives in `tab-list/`. To exercise the `session-buddy` collection shape you
+> have to **save the session as a collection first**, then export the collection.
 
 ---
 

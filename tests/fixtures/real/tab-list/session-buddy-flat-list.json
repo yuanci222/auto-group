@@ -1,0 +1,34 @@
+[
+  {
+    "title": "Google Docs",
+    "url": "https://docs.google.com/document/u/0/"
+  },
+  {
+    "title": "Chrome auto-group extension develop — DSH 本地构建",
+    "url": "http://127.0.0.1:3080/"
+  },
+  {
+    "title": "yuanci222/auto-group: Auto-group Chrome tabs with regex: one group per match, stable groups-first ordering, and rules imported from other tab managers.",
+    "url": "https://github.com/yuanci222/auto-group"
+  },
+  {
+    "title": "GitHub",
+    "url": "https://github.com/"
+  },
+  {
+    "title": "Download Microsoft Edge Browser | Windows, Mac, Linux",
+    "url": "https://explore.microsoft.com/en-us/edge/mac/next-steps?form=MA13FJ&channel=stable&cs=1925768147"
+  },
+  {
+    "title": "Auto Tab Groups - Chrome Web Store",
+    "url": "https://chromewebstore.google.com/detail/auto-tab-groups/cmolegdbajakaekbamkdhonkaldgield"
+  },
+  {
+    "title": "Session Buddy - Tab & Bookmark Manager - Chrome Web Store",
+    "url": "https://chromewebstore.google.com/detail/session-buddy-tab-bookmar/edacconmaakjimmfgnblocblbcdcpbko"
+  },
+  {
+    "title": "扩展程序",
+    "url": "chrome://extensions/"
+  }
+]

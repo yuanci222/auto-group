@@ -24,10 +24,89 @@ const COLOR_ALIASES: Record<string, GroupColor> = {
   gray: 'grey',
 };
 
+/**
+ * Real STG backups store `iconColor` as a hex string (`#0000ff`), not a Chrome
+ * colour name, so map the common swatches and fall back to the nearest Chrome
+ * colour for anything else.
+ */
+const HEX_SWATCHES: Record<string, GroupColor> = {
+  '#0000ff': 'blue',
+  '#1a73e8': 'blue',
+  '#5a8dee': 'blue',
+  '#ff0000': 'red',
+  '#d93025': 'red',
+  '#00ff00': 'green',
+  '#1e8e3e': 'green',
+  '#ff9900': 'orange',
+  '#e8710a': 'orange',
+  '#ffff00': 'yellow',
+  '#f9ab00': 'yellow',
+  '#ff00ff': 'pink',
+  '#d01884': 'pink',
+  '#800080': 'purple',
+  '#9334e6': 'purple',
+  '#00ffff': 'cyan',
+  '#007b83': 'cyan',
+  '#808080': 'grey',
+  '#9aa0a6': 'grey',
+};
+
+/** Chrome's own palette, for nearest-colour matching. */
+const REFERENCE_RGB: Record<GroupColor, [number, number, number]> = {
+  grey: [154, 160, 166],
+  blue: [26, 115, 232],
+  red: [217, 48, 37],
+  yellow: [249, 171, 0],
+  green: [30, 142, 62],
+  pink: [208, 24, 132],
+  purple: [147, 52, 230],
+  cyan: [0, 123, 131],
+  orange: [232, 113, 10],
+};
+
+function hexToRgb(hex: string): [number, number, number] | null {
+  const match = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(hex.trim());
+  if (!match) return null;
+  let value = match[1]!;
+  if (value.length === 3) {
+    value = value
+      .split('')
+      .map((char) => char + char)
+      .join('');
+  }
+  return [
+    parseInt(value.slice(0, 2), 16),
+    parseInt(value.slice(2, 4), 16),
+    parseInt(value.slice(4, 6), 16),
+  ];
+}
+
+function nearestGroupColor(rgb: [number, number, number]): GroupColor {
+  let best: GroupColor = 'grey';
+  let bestDistance = Number.POSITIVE_INFINITY;
+  for (const name of Object.keys(REFERENCE_RGB) as GroupColor[]) {
+    const target = REFERENCE_RGB[name];
+    const distance =
+      (rgb[0] - target[0]) ** 2 + (rgb[1] - target[1]) ** 2 + (rgb[2] - target[2]) ** 2;
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = name;
+    }
+  }
+  return best;
+}
+
 function mapColor(value: string | undefined): GroupColor | undefined {
   if (!value) return undefined;
-  if (isGroupColor(value)) return value;
-  return COLOR_ALIASES[value];
+  const trimmed = value.trim();
+  if (isGroupColor(trimmed)) return trimmed;
+  const lower = trimmed.toLowerCase();
+  const alias = COLOR_ALIASES[lower];
+  if (alias) return alias;
+  const swatch = HEX_SWATCHES[lower];
+  if (swatch) return swatch;
+  const rgb = hexToRgb(lower);
+  return rgb ? nearestGroupColor(rgb) : undefined;
 }
 
 export function splitCatchTabRules(value: string | undefined): string[] {
