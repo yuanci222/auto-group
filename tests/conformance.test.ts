@@ -57,19 +57,20 @@ describe('documented format conformance', () => {
 
 /**
  * Drop a real export from another extension into
- * `tests/fixtures/real/<importer-id>/` and it is smoke-tested automatically:
- * it must be detected as that importer and produce a parseable result.
+ * `tests/fixtures/real/<name>/` and it is smoke-tested automatically. `<name>`
+ * may be either an importer id (`tab-modifier`) or a concrete result format
+ * (`tab-manager-plus`, `session-buddy`, …) so session formats stay separated.
  */
-function listRealFixtures(): Array<{ importer: string; file: string; text: string }> {
+function listRealFixtures(): Array<{ target: string; file: string; text: string }> {
   if (!existsSync(REAL_DIR)) return [];
-  const found: Array<{ importer: string; file: string; text: string }> = [];
+  const found: Array<{ target: string; file: string; text: string }> = [];
   for (const entry of readdirSync(REAL_DIR)) {
     const dir = join(REAL_DIR, entry);
     if (!statSync(dir).isDirectory()) continue;
     for (const file of readdirSync(dir)) {
       if (file.startsWith('.') || file.toLowerCase() === 'readme.md') continue;
       found.push({
-        importer: entry,
+        target: entry,
         file: `${entry}/${file}`,
         text: readFileSync(join(dir, file), 'utf8'),
       });
@@ -86,10 +87,18 @@ describe('real export drop-in', () => {
   });
 
   for (const item of real) {
-    it(`${item.file} is detected as ${item.importer}`, () => {
+    it(`${item.file} is detected as ${item.target}`, () => {
       const outcome = parseImport(item.text);
-      expect(outcome.result, outcome.errors.join(' | ')).not.toBeNull();
-      expect(outcome.guesses[0]?.format).toBe(item.importer);
+      const result = outcome.result;
+      expect(result, outcome.errors.join(' | ')).not.toBeNull();
+      if (!result) return;
+      const detected = new Set(
+        [result.format, outcome.guesses[0]?.format].filter((value): value is string => Boolean(value)),
+      );
+      expect(
+        [...detected],
+        `${item.file}: folder "${item.target}" must match the detected importer id or format`,
+      ).toContain(item.target);
     });
   }
 });
