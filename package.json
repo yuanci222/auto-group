@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:compat": "vitest run tests/conformance.test.ts tests/roundtrip.test.ts",
     "test:ui": "vitest --ui",
     "e2e": "pnpm build && node scripts/e2e.mjs",
     "zip": "pnpm build && cd dist && zip -r ../auto-group.zip . && cd .. && echo 'dist/../auto-group.zip'"

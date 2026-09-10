@@ -160,14 +160,42 @@ function detectTabManagerPlus(data: unknown): SessionFile | null {
 
 function detectSessionBuddy(data: unknown): SessionFile | null {
   if (!isRecord(data)) return null;
+
+  // Documented JSON export:
+  //   { collections: [{ title, folders: [{ title, links: [{ url, title, pinned }] }] }] }
+  const collections = asArray(data.collections).filter(isRecord);
+  if (collections.length > 0) {
+    const groups: SessionGroup[] = [];
+    for (const collection of collections) {
+      const folders = asArray(collection.folders).filter(isRecord);
+      if (folders.length > 0) {
+        for (const folder of folders) {
+          groups.push({
+            title: str(folder.title) ?? str(collection.title),
+            tabs: tabsFrom(folder.links ?? folder.tabs),
+          });
+        }
+      } else {
+        groups.push({
+          title: str(collection.title),
+          tabs: tabsFrom(collection.links ?? collection.tabs),
+        });
+      }
+    }
+    return { format: 'session-buddy', label: 'Session Buddy', groups, warnings: [] };
+  }
+
+  // Older/simplified shape: { windows: [{ tabs: [...] }] }
   const windows = asArray(data.windows);
-  if (windows.length === 0 || !windows.every((w) => isRecord(w) && 'tabs' in w)) return null;
-  return {
-    format: 'session-buddy',
-    label: 'Session Buddy',
-    groups: [{ tabs: windows.flatMap((w) => tabsFrom((w as Record<string, unknown>).tabs)) }],
-    warnings: [],
-  };
+  if (windows.length > 0 && windows.every((w) => isRecord(w) && 'tabs' in w)) {
+    return {
+      format: 'session-buddy',
+      label: 'Session Buddy',
+      groups: [{ tabs: windows.flatMap((w) => tabsFrom((w as Record<string, unknown>).tabs)) }],
+      warnings: [],
+    };
+  }
+  return null;
 }
 
 function detectSimpleTabGroups(data: unknown): SessionFile | null {
@@ -204,7 +232,8 @@ function detectToby(data: unknown): SessionFile | null {  if (!isRecord(data)) r
 
 function detectWorkona(data: unknown): SessionFile | null {
   if (!isRecord(data)) return null;
-  const workspaces = asArray(data.workspaces);
+  // The real export uses a capitalised `Workspaces` key (and may carry `resources`).
+  const workspaces = asArray(data.Workspaces ?? data.workspaces);
   if (workspaces.length === 0) return null;
   return {
     format: 'workona',

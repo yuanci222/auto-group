@@ -23,5 +23,5 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src", "manifest.config.ts", "vite.config.ts", "vitest.setup.ts"]
+  "include": ["src", "tests", "manifest.config.ts", "vite.config.ts", "vitest.setup.ts"]
 }

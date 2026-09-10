@@ -140,6 +140,9 @@ export function sanitiseRule(input: unknown): Rule {
     mode: (match.mode as MatchMode) ?? 'regex',
     flags: typeof match.flags === 'string' ? match.flags : 'i',
     caseSensitive: typeof match.caseSensitive === 'boolean' ? match.caseSensitive : undefined,
+    capturePattern: typeof match.capturePattern === 'string' ? match.capturePattern : undefined,
+    captureTarget:
+      match.captureTarget === 'title' || match.captureTarget === 'url' ? match.captureTarget : undefined,
     groupMode: (group.mode as GroupNameMode) ?? 'fixed',
     title: typeof group.title === 'string' ? group.title : undefined,
     template: typeof group.template === 'string' ? group.template : undefined,

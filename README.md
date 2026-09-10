@@ -55,7 +55,8 @@ rules, test patterns, and import/export.
 
 ```bash
 pnpm dev            # Vite dev server with HMR for the extension pages
-pnpm test           # Vitest unit tests (67)
+pnpm test           # unit, format-conformance and fuzz tests (135)
+pnpm test:compat    # only the third-party format conformance suite
 pnpm test:watch     # watch mode
 pnpm typecheck      # tsc --noEmit
 pnpm e2e            # real-Chrome end-to-end test (needs Chrome for Testing)

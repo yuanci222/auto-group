@@ -141,15 +141,35 @@ exact index semantics, and it stops if a tab disappears mid-flight.
 
 ## 3. Testing
 
-- **67 unit/component tests** cover the matcher (all modes, flags, captures, templates), the
-  planner (dynamic grouping, ownership, overrides, priority, colour rotation), the ordering
-  algorithm (including the `GroupA|GroupB|GroupC|tabA|tabB|tabC` shape), every importer and the
-  merge strategy, and the rule editor UI.
+- **135 tests** across unit, component, conformance and fuzz suites:
+  - `src/**/*.test.ts` cover the matcher (all modes, flags, captures, templates), the planner
+    (dynamic grouping, ownership, overrides, priority, colour rotation), the ordering algorithm
+    (including the `GroupA|GroupB|GroupC|tabA|tabB|tabC` shape) and the options UI.
+  - `tests/conformance.test.ts` runs a **fixture corpus** — one file-shaped export per supported
+    format — through `parseImport` and checks the importer that wins detection, the resulting
+    `format`, the rule count, and per-rule mappings (target, mode, pattern, group title, colour,
+    enabled). A coverage test fails if a registered importer has no fixture.
+  - `tests/robustness.test.ts` fuzzes `parseImport` with 800 seeded random JSON documents plus a
+    list of hostile inputs (truncated JSON, wrong types, 5 kB patterns, `__proto__` keys) and
+    asserts it never throws and never pollutes `Object.prototype`; it also asserts the merge
+    invariants (re-importing a file adds nothing, the base ruleset is never mutated).
+  - `tests/roundtrip.test.ts` exports every fixture back out and re-imports it, which catches
+    field loss in the serialisation path.
+  - `tests/units.test.ts` keeps the focused unit tests (match-pattern compilation, `catchTabRules`
+    splitting, merge strategy, parse errors).
+- **Drop-in real exports.** `tests/fixtures/real/<importer-id>/` is scanned automatically: any
+  file placed there must be detected as that importer and parse without throwing. This is how
+  real exports from other extensions can be verified without writing assertions.
 - **`pnpm e2e`** launches a real Chrome for Testing instance with the built extension, seeds a
   rule, opens tabs whose titles contain `ticket-123` / `ticket-456`, then `ticket-789`, and asserts:
   per-match groups are created, groups stay contiguous on the left, and the new group lands after
   the existing groups and before the ungrouped tabs. This is the only test that exercises Chrome's
   real `tabs.group` / `tabs.move` / `tabGroups.update` semantics.
+
+The conformance corpus paid for itself immediately: it exposed that Session Buddy's documented
+export is `{collections:[{folders:[{links:[…]}]}]}` (the importer only understood `windows/tabs`)
+and that Workona exports a capitalised `Workspaces` key, plus that `sanitiseRule` dropped
+`capturePattern` / `captureTarget` on a native export round-trip.
 
 ## 4. Known limitations / future work
 
