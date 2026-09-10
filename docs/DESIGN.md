@@ -175,8 +175,49 @@ Simple Tab Groups stores `iconColor` as a hex string (`#0000ff`) rather than a C
 so real backups lost their group colours — the mapper now covers hex swatches with a nearest-colour
 fallback. Those six real exports are pinned in `tests/fixtures/index.ts` with per-rule assertions.
 
+### Which formats are actually verified
+
+Only the formats below have been run against a **real export captured from the extension itself**.
+Those files live in `tests/fixtures/real/` and are pinned with per-rule assertions in
+`tests/fixtures/index.ts`:
+
+| Format | Real export |
+| --- | --- |
+| Tab Modifier / Tabee 1.x | `tab-modifier/tabee.config.json` |
+| Tab Groups Extension (guokai.dev) | `tab-groups-extension/tabgroups_rules_20260910.json` |
+| Auto-Group Tabs (loilo) | `auto-group-tabs-loilo/auto-group-tabs-export--*.json` |
+| Auto Tab Groups (nitzanpap) | `auto-tab-groups-nitzanpap/auto-tab-groups-rules-*.json` |
+| Simple Tab Groups | `simple-tab-groups/manual-stg-backup-*.json` |
+| Flat `[{title,url}]` list (exported by Session Buddy) | `tab-list/session-buddy-flat-list.json` |
+
+**Everything else is theoretical compatibility only.** Those importers were written from published
+formats, documentation and source schemas, and are exercised by synthetic fixtures, but no real
+file produced by the product has ever been run through them. Treat them as best-effort and
+unverified:
+
+- Tab Modifier **0.x** and the **pre-0.10 flat map** (only the 1.x shape was captured)
+- Session Buddy **`collections`** documents (only its flat list was captured)
+- Workona, Tab Manager Plus, Tab Session Manager, Toby, Tablerone
+- OneTab text and bookmarks HTML
+- Auto Tab Groups (jackcellphonerepair), Auto Tab Grouper (diasDominik),
+  Regex Tab Organizer, Tabs Manager – Auto Group and Save
+- the generic fallback importer
+
+And even the six verified formats were checked against a **single sample each**, so another
+version of the same product can still differ. Adding a real export is deliberately cheap: see
+[`../tests/fixtures/real/README.md`](../tests/fixtures/real/README.md) for the drop-in mechanism and
+[`../tests/fixtures/real/TEST-KIT.md`](../tests/fixtures/real/TEST-KIT.md) for the rules to create in
+each extension.
+
+The format-compatibility test work described in this section — the conformance corpus, the
+round-trip and fuzz/robustness suites, the real-export fixtures, and the fixes they uncovered — was
+written by the **deepseek-flash** agent running on DeepSeek Harness.
+
 ## 4. Known limitations / future work
 
+- **Most importers are unverified against real files.** Only six formats have been tested with a
+  real export; see [Which formats are actually verified](#which-formats-are-actually-verified).
+  Everything else is written from documentation and may not match the current product.
 - **Anti-ReDoS guards.** Imported regexes are compiled as-is. A malicious or careless pattern can
   be slow. A `backtracksBadly()` probe plus a slow-pattern quarantine (as nitzanpap implements) is
   the natural next step.
